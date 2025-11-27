@@ -9,7 +9,7 @@ function LatestInterviewsList(){
         <div className="my-5">
             <h2 className="font-bold text-2xl">Previously Created Interviews</h2>
             {interviews?.length==0 && 
-            <div className="p-5 flex flex-col items-center gap-2  p-5 mt-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-5 mt-3 flex flex-col items-center gap-2  p-5 mt-5">
                 <VideoIcon className="h-10 w-10 text-primary" />
                 <h2>You don't have any interviews created yet</h2>
                 <Button>Create New Interview</Button>
