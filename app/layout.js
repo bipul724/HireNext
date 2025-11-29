@@ -17,6 +17,7 @@ export const metadata = {
 };
 
 import Provider from "./provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({ children }) {
   return (
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
       >
         <Provider>
           {children}
+          <Toaster />
         </Provider>
       </body>
     </html>
