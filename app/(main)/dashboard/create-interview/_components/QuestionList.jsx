@@ -8,7 +8,7 @@ import { supabase } from "@/services/supabaseClient";
 import { v4 as uuidv4 } from 'uuid';
 import { useUser } from "@/app/provider";
 
-function QuestionList({ formData }) {
+function QuestionList({ formData,onCreateLink }) {
     // 👇 YOUR STATE LOGIC IS HERE
     const [loading, setLoading] = useState(true);
     const [questionList, setQuestionList] = useState([]);
@@ -40,6 +40,8 @@ function QuestionList({ formData }) {
             setLoading(false);
         }
     }
+
+
 
     const onFinish = async () => {
         
@@ -82,6 +84,7 @@ function QuestionList({ formData }) {
             toast("Failed to save: " + error.message);
         }
         setSaveLoading(false);
+        onCreateLink(interview_id);
     }
 
     return (
@@ -107,7 +110,7 @@ function QuestionList({ formData }) {
             <div className="flex justify-end mt-8">
                 <Button onClick={()=>onFinish()} disabled={saveLoading}>
                     {saveLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Finish</Button>
+                    Create Interview Link & Finish</Button>
             </div>
         </div>
     )
