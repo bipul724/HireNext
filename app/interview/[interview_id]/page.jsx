@@ -16,6 +16,7 @@ function Interview() {
 
     const [interviewData, setInterviewData] = useState();
     const [userName,setUserName] = useState();
+    const [userEmail,setUserEmail] = useState();
     const [loading,setLoading] = useState(false);
     const {interviewInfo,setInterviewInfo} = useContext(InterviewDataContext);
     const router = useRouter();
@@ -43,6 +44,7 @@ function Interview() {
             console.log(Interviews[0]);
             setInterviewInfo({
                 userName : userName,
+                userEmail : userEmail,
                 //questionList : Interviews[0].questionList,
                 interviewData : Interviews[0]
             });
@@ -100,8 +102,12 @@ function Interview() {
                 <h2 className="font-bold text-xl">{interviewData?.jobPosition}</h2>
                 <h2 className="flex gap-2 items-center text-gray-500 mt-3"><Clock className="h-4 w-4" />{interviewData?.duration}</h2>
                 <div className="w-full">
-                    <h2>Enter your full name</h2>
-                    <Input placeholder="Enter your full name" onChange={(e) => setUserName(e.target.value)} />
+                    <h2 >Enter your full name</h2>
+                    <Input className="mt-2" placeholder="Enter your full name" onChange={(e) => setUserName(e.target.value)} />
+                </div>
+                <div className="w-full ">
+                    <h2 className="mt-2">Enter your email</h2>
+                    <Input className="mt-2" placeholder="Enter your email" onChange={(e) => setUserEmail(e.target.value)} />
                 </div>
                 <div className="p-4 rounded-xl border border-blue-100 bg-blue-50 w-full my-5">
                     <div className="flex gap-2.5 items-center text-gray-900 font-bold text-sm md:text-base">
