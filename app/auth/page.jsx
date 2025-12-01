@@ -18,7 +18,7 @@ export default function Login() {
         <div className="flex flex-col items-center justify-center h-screen">
             <div className="flex flex-col items-center border rounded-2xl p-8">
                 <Image
-                    src="/logo.png"
+                    src="/Logo.png"
                     alt="Logo"
                     width={400}
                     height={100}

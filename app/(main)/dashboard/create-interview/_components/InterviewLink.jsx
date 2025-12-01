@@ -16,15 +16,15 @@ function InterviewLink({ interview_id, formData }) {
         toast("Link copied to clipboard!");
     }
     return (
-        <div className="flex flex-col mt-10 items-center justify-center">
+        <div className="flex flex-col mt-3 items-center justify-center">
             <Image
-                src={'/check.png'}
+                src={'/Check.png'}
                 alt="check"
                 width={200}
                 height={200}
-                className="w-[50px] h-[50px]"
+                className="w-[100px] h-[80px]"
             />
-            <h2 className="font-bold text-lg mt-4">Your AI Interview is Ready!</h2>
+            <h2 className="font-bold text-lg mt-2">Your AI Interview is Ready!</h2>
             <p className="mt-3">Share this link with your candidates to start the interview process.</p>
 
             <div className="w-full p-7 mt-6 rounded-lg bg-white ">
