@@ -74,6 +74,15 @@ function QuestionList({ formData,onCreateLink }) {
                 },
             ])
             .select();
+            // Update User Credits
+            const userUpdate = await supabase
+            .from('Users')
+            .update({ credits: Number(user?.credits) - 1 })
+            .eq('userEmail', user?.email)
+            .select();
+
+            console.log(userUpdate);
+            
 
         if (data) {
             console.log("Saved:", data);

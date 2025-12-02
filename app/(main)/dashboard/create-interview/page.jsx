@@ -9,12 +9,14 @@ import QuestionList from "./_components/QuestionList";
 
 import { toast } from "sonner";
 import InterviewLink from "./_components/InterviewLink";
+import { useUser } from "@/app/provider";
 
 function CreateInterview() {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState();
     const [interviewId, setInterviewId] = useState();
+    const {user} = useUser();
     const onHandleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -24,6 +26,10 @@ function CreateInterview() {
 
     }
     const onGoToNext = () => {
+        if(user?.credits < 1){
+            toast("You have no credits!")
+            return;
+        }
         if (!formData?.jobPosition || 
             !formData?.jobDescription || 
             !formData?.interviewDuration || 
