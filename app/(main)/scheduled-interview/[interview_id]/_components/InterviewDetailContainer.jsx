@@ -1,4 +1,4 @@
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Code } from "lucide-react";
 import moment from "moment";
 
 function InterviewDetailContainer({interviewDetail}){
@@ -17,7 +17,7 @@ function InterviewDetailContainer({interviewDetail}){
                 </div>
                 {interviewDetail?.type && <div>
                     <h2 className="text-sm text-gray-500">Type</h2>
-                    <h2 className="flex text-sm font-bold items-center gap-2 "><Clock className="h-4 w-4" />{interviewDetail?.type}</h2>
+                    <h2 className="flex text-sm font-bold items-center gap-2 "><Code className="h-4 w-4" />{interviewDetail?.type}</h2>
                 </div>}
             </div>
             <div className="mt-5">
