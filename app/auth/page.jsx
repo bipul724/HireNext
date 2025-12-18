@@ -10,7 +10,7 @@ export default function Login() {
             provider: 'google',
         });
 
-        if(error) {
+        if (error) {
             console.log("Error", error.message)
         }
     }
@@ -19,7 +19,7 @@ export default function Login() {
         <div className="flex flex-col items-center justify-center h-screen">
             <div className="flex flex-col items-center border rounded-2xl p-8">
                 <Image
-                    src="/Logo.png"
+                    src="/logo.png"
                     alt="Logo"
                     width={400}
                     height={100}
@@ -36,7 +36,7 @@ export default function Login() {
                     <h2 className="text-2xl font-bold text-center mt-5">Welcome to AiCruiter</h2>
                     <p className="text-gray-500 text-center">Sign in to your account</p>
                     <Button className="mt-7 w-full"
-                    onClick={signInWithGoogle}>Login with Google</Button>
+                        onClick={signInWithGoogle}>Login with Google</Button>
                 </div>
             </div>
         </div>

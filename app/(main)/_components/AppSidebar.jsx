@@ -26,7 +26,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className={"flex items-center justify-center mt-2"}>
         <Image
-          src="/Logo.png"
+          src="/logo.png"
           alt="Logo"
           width={200}
           height={100}
