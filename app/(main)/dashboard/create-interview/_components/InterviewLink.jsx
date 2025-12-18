@@ -8,7 +8,7 @@ import { toast } from "sonner";
 function InterviewLink({ interview_id, formData }) {
     const url = process.env.NEXT_PUBLIC_HOST_URL + '/' + interview_id;
     const GetInterviewUrl = () => {
-        
+
         return url;
     }
     const onCopyLink = async () => {
@@ -18,7 +18,7 @@ function InterviewLink({ interview_id, formData }) {
     return (
         <div className="flex flex-col mt-3 items-center justify-center">
             <Image
-                src={'/Check.png'}
+                src={'/check.png'}
                 alt="check"
                 width={200}
                 height={200}
@@ -34,7 +34,7 @@ function InterviewLink({ interview_id, formData }) {
                 </div>
                 <div className="mt-3 flex gap-3 items-center">
                     <Input defaultValue={GetInterviewUrl()} disabled={true} />
-                    <Button onClick={()=>onCopyLink()}><Copy />Copy Link</Button>
+                    <Button onClick={() => onCopyLink()}><Copy />Copy Link</Button>
                 </div>
                 <hr className="my-7" />
                 <div className="flex gap-5">
