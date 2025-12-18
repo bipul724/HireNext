@@ -15,6 +15,7 @@ function Provider({ children }) {
 
     const CreateNewUser = () => {
         supabase.auth.getUser().then(async ({ data: { user } }) => {
+            if (!user?.email) return;
             //Check if user already exists
             let { data: Users, error } = await supabase
                 .from('Users')
