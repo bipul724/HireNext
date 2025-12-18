@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Logo from "@/public/Logo.png";
+// import Logo from "@/public/Logo.png";
 import { supabase } from "@/services/supabaseClient";
 
 export default function Login() {
@@ -19,7 +19,7 @@ export default function Login() {
         <div className="flex flex-col items-center justify-center h-screen">
             <div className="flex flex-col items-center border rounded-2xl p-8">
                 <Image
-                    src={Logo}
+                    src="/Logo.png"
                     alt="Logo"
                     width={400}
                     height={100}
