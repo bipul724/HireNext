@@ -317,7 +317,7 @@ export default function LandingPage() {
             <Sparkles className="h-5 w-5 text-indigo-600" />
             <span className="font-semibold text-slate-900">HireNext</span>
           </div>
-          <p className="text-sm text-slate-500">© 2024 HireNext Inc. All rights reserved.</p>
+          <p className="text-sm text-slate-500">© 2026 HireNext Inc. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="text-slate-500 hover:text-indigo-600 transition-colors">Twitter</a>
             <a href="https://github.com/bipul724" className="text-slate-500 hover:text-indigo-600 transition-colors">GitHub</a>
