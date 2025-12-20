@@ -89,9 +89,16 @@ function Interview() {
                 <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl shadow-indigo-100/50 border border-white/50 overflow-hidden">
 
                     {/* Header Section */}
-                    <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-6 text-center">
-                        <div className="inline-flex items-center justify-center bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 mb-4">
-                            <Logo size="md" className="[&>span]:text-white [&>div]:bg-white/20 [&>div]:shadow-none" />
+                    <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-center">
+                        <div className="inline-flex items-center justify-center gap-2 mb-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                </svg>
+                            </div>
+                            <span className="text-2xl font-bold text-white">
+                                Hire<span className="text-indigo-200">Next</span>
+                            </span>
                         </div>
                         <p className="text-indigo-100 text-sm font-medium">AI-Powered Interview Platform</p>
                     </div>
@@ -99,14 +106,14 @@ function Interview() {
                     {/* Content Section */}
                     <div className="p-8">
                         {/* Interview Image */}
-                        <div className="flex justify-center -mt-16 mb-6">
-                            <div className="bg-white rounded-2xl p-3 shadow-lg shadow-indigo-100/50">
+                        <div className="flex justify-center -mt-12 mb-6">
+                            <div className="bg-white rounded-2xl p-3 shadow-lg shadow-indigo-100/50 border border-slate-100">
                                 <Image
                                     src="/interviewIcon.png"
                                     alt="interview"
                                     width={200}
                                     height={200}
-                                    className="w-[160px] h-[160px] object-contain"
+                                    className="w-[140px] h-[140px] object-contain"
                                 />
                             </div>
                         </div>
