@@ -25,7 +25,9 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className={"flex items-center justify-center mt-2"}>
-        <Logo size="md" />
+        <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
+          <Logo size="md" />
+        </Link>
         <Button className="w-full mt-5">
           <Plus />Create New Interview
         </Button>
