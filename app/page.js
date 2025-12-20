@@ -320,7 +320,7 @@ export default function LandingPage() {
           <p className="text-sm text-slate-500">© 2024 HireNext Inc. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="text-slate-500 hover:text-indigo-600 transition-colors">Twitter</a>
-            <a href="#" className="text-slate-500 hover:text-indigo-600 transition-colors">GitHub</a>
+            <a href="https://github.com/bipul724" className="text-slate-500 hover:text-indigo-600 transition-colors">GitHub</a>
             <a href="#" className="text-slate-500 hover:text-indigo-600 transition-colors">LinkedIn</a>
           </div>
         </div>
