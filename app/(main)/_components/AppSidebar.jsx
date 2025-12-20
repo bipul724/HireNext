@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/sidebar"
 import { SideBarOptions } from "@/services/Constants"
 import { Plus } from "lucide-react"
-import Image from "next/image"
-// import Logo from "@/public/Logo.png"
+// import Image from "next/image"
+import Logo from "@/components/Logo"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -25,13 +25,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className={"flex items-center justify-center mt-2"}>
-        <Image
-          src="/logo.png"
-          alt="Logo"
-          width={200}
-          height={100}
-          className="w-[180px]"
-        />
+        <Logo size="md" />
         <Button className="w-full mt-5">
           <Plus />Create New Interview
         </Button>

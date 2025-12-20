@@ -2,8 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/services/supabaseClient";
-import { Clock, Info,  Loader2Icon,  Video } from "lucide-react";
+import { Clock, Info, Loader2Icon, Video } from "lucide-react";
 import Image from "next/image";
+import Logo from "@/components/Logo";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -11,14 +12,14 @@ import { useContext } from "react";
 import { InterviewDataContext } from "@/context/InterviewDataContext";
 
 function Interview() {
-    const {interview_id} = useParams(); 
+    const { interview_id } = useParams();
     console.log(interview_id);
 
     const [interviewData, setInterviewData] = useState();
-    const [userName,setUserName] = useState();
-    const [userEmail,setUserEmail] = useState();
-    const [loading,setLoading] = useState(false);
-    const {interviewInfo,setInterviewInfo} = useContext(InterviewDataContext);
+    const [userName, setUserName] = useState();
+    const [userEmail, setUserEmail] = useState();
+    const [loading, setLoading] = useState(false);
+    const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
     const router = useRouter();
     // [loading,setLoading] = useState(false);
 
@@ -28,12 +29,12 @@ function Interview() {
 
     const joinInterview = async () => {
         setLoading(true);
-        let {data:Interviews,error} = await supabase
+        let { data: Interviews, error } = await supabase
             .from("Interviews")
             .select("*")
             .eq("interview_id", interview_id);
-        
-        if(error) {
+
+        if (error) {
             console.log(error);
             toast("Incorrect Interview Link");
             return;
@@ -43,53 +44,47 @@ function Interview() {
         if (Interviews && Interviews.length > 0) {
             console.log(Interviews[0]);
             setInterviewInfo({
-                userName : userName,
-                userEmail : userEmail,
+                userName: userName,
+                userEmail: userEmail,
                 //questionList : Interviews[0].questionList,
-                interviewData : Interviews[0]
+                interviewData: Interviews[0]
             });
             router.push(`/interview/${interview_id}/start`);
             // Add your navigation logic here, e.g., router.push(...)
         } else {
-             toast("Interview not found");
+            toast("Interview not found");
         }
 
-        
-        
+
+
         setLoading(false);
     }
     const GetInterviewData = async () => {
         setLoading(true);
-        try{
-        const {data : Interviews, error} = await supabase
-            .from("Interviews")
-            .select("jobPosition,jobDescription,duration,type")
-            .eq("interview_id", interview_id);
-        
+        try {
+            const { data: Interviews, error } = await supabase
+                .from("Interviews")
+                .select("jobPosition,jobDescription,duration,type")
+                .eq("interview_id", interview_id);
+
             setInterviewData(Interviews[0]);
             setLoading(false);
-            if(Interviews?.length === 0) {
+            if (Interviews?.length === 0) {
                 toast("Incorrect Interview Link");
-                return ;
+                return;
             }
-        } 
+        }
         catch (error) {
             console.log(error);
             setLoading(false);
             toast("Incorrect Interview Link");
         }
     }
-    
+
     return (
         <div className="px-10 md:px-28 lg:px-48 xl:px-64 mt-10">
             <div className="flex flex-col items-center justify-center mb-20 border rounded-lg bg-white p-7 lg:px-32 xl:px-52">
-                <Image
-                    src="/Logo.png"
-                    alt="Logo"
-                    width={200}
-                    height={100}
-                    className="w-[140px]"
-                />
+                <Logo size="lg" />
                 <h2 className="mt-3">AI-Powered Interview Platform</h2>
                 <Image
                     src="/interviewIcon.png"
@@ -120,11 +115,11 @@ function Interview() {
                         <li>- Ensure you have a quiet environment</li>
                     </ul>
                 </div>
-                <Button className="w-full mt-1 font-bold" 
-                disabled={loading || !userName
-                    || !interviewData}
-                onClick={() => joinInterview()}
-                ><Video />{loading &&<Loader2Icon />}Join Interview</Button>
+                <Button className="w-full mt-1 font-bold"
+                    disabled={loading || !userName
+                        || !interviewData}
+                    onClick={() => joinInterview()}
+                ><Video />{loading && <Loader2Icon />}Join Interview</Button>
             </div>
 
         </div>
