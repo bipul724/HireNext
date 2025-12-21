@@ -19,9 +19,11 @@ import {
 import { SplineScene } from "@/components/ui/splite";
 import { Spotlight } from "@/components/ui/spotlight";
 import { Card } from "@/components/ui/card";
+import { useUser } from "@/app/provider";
 
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useUser();
 
   return (
     <div className="min-h-screen bg-white text-slate-900 selection:bg-indigo-500 selection:text-white overflow-x-hidden font-sans">
@@ -41,14 +43,22 @@ export default function LandingPage() {
             <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Features</Link>
             <Link href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">How it Works</Link>
             <Link href="/billing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Pricing</Link>
-            <Link href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Dashboard</Link>
 
-            <Link
-              href="/auth"
-              className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 hover:scale-105 active:scale-95"
-            >
-              Get Started
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 hover:scale-105 active:scale-95"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/auth"
+                className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 hover:scale-105 active:scale-95"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -66,8 +76,12 @@ export default function LandingPage() {
             <div className="flex flex-col gap-4">
               <Link href="#features" className="text-sm text-slate-600 hover:text-indigo-600">Features</Link>
               <Link href="#how-it-works" className="text-sm text-slate-600 hover:text-indigo-600">How it Works</Link>
-              <Link href="/dashboard" className="text-sm text-slate-600 hover:text-indigo-600">Dashboard</Link>
-              <Link href="/auth" className="block w-full rounded-md bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-500">Get Started</Link>
+              <Link href="/billing" className="text-sm text-slate-600 hover:text-indigo-600">Pricing</Link>
+              {user ? (
+                <Link href="/dashboard" className="block w-full rounded-md bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-500">Go to Dashboard</Link>
+              ) : (
+                <Link href="/auth" className="block w-full rounded-md bg-indigo-600 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-500">Get Started</Link>
+              )}
             </div>
           </div>
         )}
