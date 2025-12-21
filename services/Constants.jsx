@@ -1,10 +1,15 @@
-import { BriefcaseBusiness, Calendar, CodeXml, Grid, LayoutDashboard, List, Puzzle, Settings, User, WalletCards } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, Calendar, CodeXml, Grid, LayoutDashboard, List, Puzzle, Settings, User, WalletCards } from "lucide-react";
 
 export const SideBarOptions = [
     {
         name: "Dashboard",
         icon: LayoutDashboard,
         path: "/dashboard",
+    },
+    {
+        name: "Analytics",
+        icon: BarChart3,
+        path: "/analytics",
     },
     {
         name: "Scheduled Interview",
