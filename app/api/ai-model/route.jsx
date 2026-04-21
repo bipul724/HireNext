@@ -4,13 +4,18 @@ import OpenAI from "openai";
 
 export async function POST(req) {
     try {
-        const { jobPosition, jobDescription, duration, type } = await req.json();
+        const body = await req.json();
+        const { jobPosition, jobDescription, interviewDuration, interviewType } = body;
+
+        console.log("--- AI Model API called ---");
+        console.log("Received fields:", { jobPosition, jobDescription: jobDescription?.substring(0, 50), interviewDuration, interviewType });
+        console.log("API Key present:", !!process.env.OPENROUTER_API_KEY);
 
         const FINAL_PROMPT = QUESTIONS_PROMPT
             .replace("{{jobTitle}}", jobPosition)
             .replace("{{jobDescription}}", jobDescription)
-            .replace("{{duration}}", duration)
-            .replace("{{type}}", type)
+            .replace("{{duration}}", interviewDuration)
+            .replace("{{type}}", interviewType)
             .replace("{{jobTitle}}", jobPosition);
 
         const openai = new OpenAI({
@@ -19,7 +24,7 @@ export async function POST(req) {
         })
 
         const completion = await openai.chat.completions.create({
-            model: "meta-llama/llama-3.3-70b-instruct:free",
+            model: "nvidia/nemotron-3-super-120b-a12b:free",
             messages: [
                 { role: "user", content: FINAL_PROMPT }
             ],
@@ -30,9 +35,9 @@ export async function POST(req) {
         // --- CLEANING LOGIC START ---
         const start = aiResponse.indexOf('{');
         const end = aiResponse.lastIndexOf('}') + 1;
-        
+
         if (start === -1 || end === -1) {
-             throw new Error("AI did not generate valid JSON");
+            throw new Error("AI did not generate valid JSON");
         }
 
         const jsonString = aiResponse.substring(start, end);
@@ -42,7 +47,10 @@ export async function POST(req) {
         return NextResponse.json(parsedResponse, { status: 200 })
     }
     catch (error) {
-        console.error("API Error:", error);
-        return NextResponse.json({ error: "Failed to generate questions" }, { status: 500 })
+        console.error("=== API Error Details ===");
+        console.error("Message:", error.message);
+        console.error("Status:", error.status);
+        console.error("Full error:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        return NextResponse.json({ error: error.message || "Failed to generate questions" }, { status: 500 })
     }
 }
