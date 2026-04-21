@@ -102,18 +102,9 @@ function StartInterview() {
         const assistantOptions = {
             name: "AI Recruiter",
             firstMessage: `Hi ${interviewInfo?.userName}, how are you? Ready for your interview on ${interviewInfo?.interviewData?.jobPosition}?`,
-            transcriber: {
-                provider: "deepgram",
-                model: "nova-2",
-                language: "en-US",
-            },
-            voice: {
-                provider: "playht",
-                voiceId: "jennifer",
-            },
             model: {
-                provider: "openai",
-                model: "gpt-4",
+                provider: "google",
+                model: "gemini-2.0-flash",
                 messages: [
                     {
                         role: "system",
@@ -128,6 +119,9 @@ function StartInterview() {
             }
         };
 
+        console.log("=== VAPI START ===");
+        console.log("Public Key:", process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+        console.log("Assistant Options:", JSON.stringify(assistantOptions, null, 2));
         vapi.start(assistantOptions);
     }, [interviewInfo]);
 
@@ -139,7 +133,7 @@ function StartInterview() {
         };
 
         const handleCallStart = () => {
-            console.log("Call has started");
+            console.log("=== VAPI CALL STARTED ===");
             toast("Call Connected...");
 
             if (timerRef.current) clearInterval(timerRef.current);
@@ -149,7 +143,8 @@ function StartInterview() {
         };
 
         const handleCallEnd = () => {
-            console.log("Call has ended");
+            console.log("=== VAPI CALL ENDED ===");
+            console.log("Call duration (seconds):", time);
             toast("Interview Ended... Generating feedback.");
 
             if (timerRef.current) {
@@ -168,7 +163,18 @@ function StartInterview() {
         };
 
         const handleError = (error) => {
-            console.error("VAPI error:", error);
+            console.error("=== VAPI ERROR ===");
+            console.error("Error object:", JSON.stringify(error, null, 2));
+            console.error("Error raw:", error);
+            if (error?.error) {
+                console.error("Error.error:", JSON.stringify(error.error, null, 2));
+            }
+            if (error?.message) {
+                console.error("Error message:", error.message);
+            }
+            if (error?.statusCode) {
+                console.error("Status code:", error.statusCode);
+            }
         };
 
         vapi.on("message", handleMessage);
