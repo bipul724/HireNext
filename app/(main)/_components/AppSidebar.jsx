@@ -28,9 +28,11 @@ export function AppSidebar() {
         <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
           <Logo size="md" />
         </Link>
-        <Button className="w-full mt-5">
-          <Plus />Create New Interview
-        </Button>
+        <Link href="/dashboard/create-interview">
+          <Button className="w-full mt-5">
+            <Plus />Create New Interview
+          </Button>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
