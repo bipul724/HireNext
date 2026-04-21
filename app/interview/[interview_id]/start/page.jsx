@@ -22,6 +22,7 @@ function StartInterview() {
     const [conversation, setConversation] = useState(null);
     const [time, setTime] = useState(0);
     const timerRef = useRef(null);
+    const callStartedRef = useRef(false);
 
     const conversationRef = useRef(null);
     useEffect(() => { conversationRef.current = conversation; }, [conversation]);
@@ -166,11 +167,16 @@ function StartInterview() {
             setActiveUser(true);
         };
 
+        const handleError = (error) => {
+            console.error("VAPI error:", error);
+        };
+
         vapi.on("message", handleMessage);
         vapi.on("call-start", handleCallStart);
         vapi.on("call-end", handleCallEnd);
         vapi.on("speech-start", handleSpeechStart);
         vapi.on("speech-end", handleSpeechEnd);
+        vapi.on("error", handleError);
 
         return () => {
             vapi.off("message", handleMessage);
@@ -178,6 +184,7 @@ function StartInterview() {
             vapi.off("call-end", handleCallEnd);
             vapi.off("speech-start", handleSpeechStart);
             vapi.off("speech-end", handleSpeechEnd);
+            vapi.off("error", handleError);
 
             if (timerRef.current) {
                 clearInterval(timerRef.current);
@@ -187,8 +194,15 @@ function StartInterview() {
     }, [GenerateFeedback]);
 
     useEffect(() => {
-        if (interviewInfo) startCall();
-        return () => { };
+        if (interviewInfo && !callStartedRef.current) {
+            callStartedRef.current = true;
+            startCall();
+        }
+        return () => {
+            if (callStartedRef.current) {
+                try { vapi.stop(); } catch (e) { /* ignore */ }
+            }
+        };
     }, [interviewInfo, startCall]);
 
     const formatTime = (seconds) => {
