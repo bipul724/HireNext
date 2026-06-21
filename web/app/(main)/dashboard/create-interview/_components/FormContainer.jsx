@@ -51,6 +51,15 @@ function FormContainer({ onHandleInputChange,GoToNext }){
                 />
             </div>
             <div className="mt-5">
+                <h2 className="text-sm font-medium">Candidate Email</h2>
+                <Input
+                type="email"
+                placeholder="Enter candidate's email address"
+                className="mt-2"
+                onChange={(e) => onHandleInputChange("candidateEmail", e.target.value)}                
+                />
+            </div>
+            <div className="mt-5">
                 <h2 className="text-sm font-medium">Job Description</h2>
                 <Textarea
                 placeholder="Enter job description"

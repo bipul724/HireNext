@@ -65,7 +65,7 @@ function QuestionList({ formData,onCreateLink }) {
                     // MAP JAVASCRIPT KEYS TO EXACT DATABASE COLUMNS
                     jobPosition: formData?.jobPosition,
                     jobDescription: formData?.jobDescription,
-                    
+                    candidateEmail: formData?.candidateEmail,
                     duration: formData?.interviewDuration, // Fix: Map interviewDuration -> duration
                     type: cleanType,                       // Fix: Map interviewType -> type
                     questionList: questionList,

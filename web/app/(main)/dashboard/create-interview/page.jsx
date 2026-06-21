@@ -32,6 +32,7 @@ function CreateInterview() {
         }
         if (!formData?.jobPosition || 
             !formData?.jobDescription || 
+            !formData?.candidateEmail || 
             !formData?.interviewDuration || 
             !formData?.interviewType?.length) {
 
