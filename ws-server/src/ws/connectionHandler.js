@@ -3,7 +3,8 @@ import { addToRoom, removeFromRoom, broadcastLocal } from "./roomRegistry.js";
 import { publishToRoom } from "./pubsub.js";
 import { getRoomDoc, saveRoomDoc, addPresence, removePresence, getRoomPresence, getRoomStatus, updateRoomStatus, lockExecution, releaseExecution, getExecutionResult, saveExecutionResult } from "../rooms/roomState.js";
 import { executeCode } from "../utils/piston.js";
-import { trackEvent, saveSnapshot } from "../utils/analytics.js";
+import { trackEvent } from "../utils/analytics.js";
+import { saveSnapshot } from "../utils/snapshots.js";
 import { logger } from "../utils/logger.js";
 
 // Debounced Redis writes per room (don't hammer Redis on every keystroke).

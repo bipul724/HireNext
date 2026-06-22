@@ -125,12 +125,12 @@ export function MonacoWorkspace() {
         </div>
         
         <button
-          onClick={handleRunCode}
-          disabled={isLocked || isRunning}
-          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:text-gray-400 rounded shadow-sm transition-colors"
+          disabled={true}
+          title="Code execution is temporarily disabled (Coming Soon)"
+          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-gray-400 bg-gray-700 border border-gray-600 cursor-not-allowed rounded shadow-sm"
         >
-          <Play className="w-4 h-4" />
-          {isRunning ? 'Running...' : 'Run Code'}
+          <Play className="w-4 h-4 opacity-50" />
+          Run Code (Coming Soon)
         </button>
       </div>
 

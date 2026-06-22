@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useWebSocket } from '../../../providers/websocket-provider';
+import { useWebSocket } from '../../providers/websocket-provider';
 import { Timer, PlayCircle, CheckCircle, XCircle, Code2, Lock } from 'lucide-react';
 
 export function InterviewAnalytics({ interviewId }) {

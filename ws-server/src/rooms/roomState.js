@@ -46,7 +46,7 @@ export async function getRoomStatus(interviewId) {
   }
   return { ...status, serverTime: Date.now() };
 }
-
+/*
 export async function updateRoomStatus(interviewId, mutateFn) {
   const key = roomStatusKey(interviewId);
   return await redisClient.executeIsolated(async (isolatedClient) => {
@@ -79,7 +79,59 @@ export async function updateRoomStatus(interviewId, mutateFn) {
       return { ...updatedStatus, serverTime: Date.now() };
     }
   });
+}*/
+
+export async function updateRoomStatus(interviewId, mutateFn) {
+  const key = roomStatusKey(interviewId);
+
+  while (true) {
+    await redisClient.watch(key);
+
+    const raw = await redisClient.get(key);
+
+    let status = { ...DEFAULT_STATUS };
+
+    if (raw) {
+      try {
+        status = JSON.parse(raw);
+      } catch {}
+    }
+
+    const updatedStatus = mutateFn(status);
+
+    if (!updatedStatus) {
+      await redisClient.unwatch();
+
+      return {
+        ...status,
+        serverTime: Date.now(),
+      };
+    }
+
+    const payload = JSON.stringify(updatedStatus);
+
+    const multi = redisClient.multi();
+
+    multi.set(key, payload, {
+      EX: ROOM_TTL_SECONDS,
+    });
+
+    const result = await multi.exec();
+
+    if (result === null) {
+      // Another client modified the key.
+      // Retry transaction.
+      continue;
+    }
+
+    return {
+      ...updatedStatus,
+      serverTime: Date.now(),
+    };
+  }
 }
+
+
 
 const executionResultKey = (interviewId) => `room:${interviewId}:executionResult`;
 const executionLockKey = (interviewId) => `room:${interviewId}:executionLock`;

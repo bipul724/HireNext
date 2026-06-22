@@ -26,7 +26,7 @@ services:
       - CLIENT_ORIGINS=http://localhost:3000
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - PISTON_API_URL=https://emkc.org/api/v2/piston/execute
+      - PISTON_API_URL=http://localhost:2000/api/v2/execute
     depends_on:
       redis:
         condition: service_healthy
