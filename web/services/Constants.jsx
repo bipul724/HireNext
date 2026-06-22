@@ -91,8 +91,28 @@ Required JSON Structure:
 
 
 export const FEEDBACK_PROMPT = `{{conversation}}
-Depends on this Interview Conversation between assitant and user, 
-Give me feedback for user interview. Give me rating out of 10 for technical Skills, 
+
+Code Submission (Language: {{code_language}}):
+\`\`\`
+{{code_submission}}
+\`\`\`
+
+Depends on this Interview Conversation between assitant and user, and the provided Code Submission (if any), 
+Give me feedback for user interview. 
+
+If code is provided, evaluate it for:
+- Correctness
+- Algorithmic approach
+- Time complexity
+- Space complexity
+- Readability
+- Maintainability
+- Error handling
+- Edge cases
+Code quality should influence 'techicalSkills' and 'problemSolving'.
+Code quality should NOT influence 'communication' or 'experince'.
+
+Give me rating out of 10 for techicalSkills, 
 Communication, Problem Solving, Experince. Also give me summery in 3 lines 
 about the interview and one line to let me know whether is recommanded 
 for hire or not with msg. Give me response in JSON format

@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 export async function POST(req) {
-    const { conversation } = await req.json();
-    const FINAL_PROMPT = FEEDBACK_PROMPT.replace("{{conversation}}", JSON.stringify(conversation));
+    const { conversation, codeSubmission = "", codeLanguage = "" } = await req.json();
+    let FINAL_PROMPT = FEEDBACK_PROMPT.replace("{{conversation}}", JSON.stringify(conversation));
+    FINAL_PROMPT = FINAL_PROMPT.replace("{{code_submission}}", codeSubmission);
+    FINAL_PROMPT = FINAL_PROMPT.replace("{{code_language}}", codeLanguage);
     try {
 
 

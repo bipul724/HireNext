@@ -155,6 +155,30 @@ export function handleConnection(ws, ctx) {
         break;
       }
 
+      case "editor:flush": {
+        const payload = msg.payload || {};
+        if (typeof payload.code === "string" && typeof payload.language === "string") {
+          // Cancel pending debounced write to prevent race conditions
+          const existing = pendingWrites.get(interviewId);
+          if (existing) clearTimeout(existing);
+          pendingWrites.delete(interviewId);
+
+          const doc = {
+            code: payload.code,
+            language: payload.language,
+          };
+
+          try {
+            await saveRoomDoc(interviewId, doc);
+            send(ws, "editor:flush:ack", { success: true });
+          } catch (err) {
+            logger.error(`Flush saveRoomDoc failed for ${interviewId}:`, err.message);
+            send(ws, "editor:flush:ack", { success: false, error: err.message });
+          }
+        }
+        break;
+      }
+
       case "timer:start":
       case "timer:pause":
       case "timer:resume":

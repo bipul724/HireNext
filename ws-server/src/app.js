@@ -97,6 +97,35 @@ export function createApp() {
     res.status(200).json(timeline);
   });
 
+    // Code Retrieval API (for persistent saving at end of interview)
+    app.get("/api/interviews/:id/code", authenticateUser, async (req, res) => {
+      const { id } = req.params;
+      const userEmail = req.user.email;
+
+      const { data: interview, error: dbError } = await supabase
+        .from("Interviews")
+        .select("userEmail, candidateEmail")
+        .eq("interview_id", id)
+        .single();
+
+      if (dbError || !interview) {
+        return res.status(404).json({ error: "Interview not found" });
+      }
+
+      if (userEmail !== interview.userEmail && userEmail !== interview.candidateEmail) {
+        return res.status(403).json({ error: "Unauthorized" });
+      }
+
+      try {
+        const { getRoomDoc } = await import("./rooms/roomState.js");
+        const doc = await getRoomDoc(id);
+        res.status(200).json(doc);
+      } catch (error) {
+        logger.error(`Error fetching code for ${id}:`, error.message);
+        res.status(500).json({ error: "Failed to fetch code from Redis" });
+      }
+    });
+
   // Analytics API
   app.get("/api/interviews/:id/analytics", authenticateUser, async (req, res) => {
     const { id } = req.params;

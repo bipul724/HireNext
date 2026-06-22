@@ -9,6 +9,7 @@ export class WsClient {
     this.reconnectTimeoutId = null;
     this.isIntentionallyDisconnected = false;
     this.isConnecting = false; // Prevents async overlapping connect() calls
+    this.flushCallbacks = []; // Stores promises for editor:flush:ack
 
     // Bind methods
     this.handleOnline = this.handleOnline.bind(this);
@@ -78,13 +79,24 @@ export class WsClient {
       };
 
       this.ws.onmessage = (event) => {
-        if (this.onMessageCallback) {
-          try {
-            const parsed = JSON.parse(event.data);
-            this.onMessageCallback(parsed);
-          } catch (err) {
-            console.error('[WebSocket] Failed to parse message:', err);
+        try {
+          const parsed = JSON.parse(event.data);
+          
+          if (parsed.type === "editor:flush:ack") {
+            const cb = this.flushCallbacks.shift();
+            if (cb) {
+              clearTimeout(cb.timeout);
+              if (parsed.payload?.success) cb.resolve(true);
+              else cb.reject(new Error(parsed.payload?.error || "Flush failed"));
+            }
+            return;
           }
+
+          if (this.onMessageCallback) {
+            this.onMessageCallback(parsed);
+          }
+        } catch (err) {
+          console.error('[WebSocket] Failed to parse message:', err);
         }
       };
 
@@ -116,6 +128,24 @@ export class WsClient {
     } else {
       console.warn('[WebSocket] Cannot send message, not connected yet:', type);
     }
+  }
+
+  flushEditor(payload) {
+    return new Promise((resolve, reject) => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        return reject(new Error("WebSocket not connected"));
+      }
+      
+      const timeout = setTimeout(() => {
+        // Remove from callbacks to prevent memory leak
+        const idx = this.flushCallbacks.findIndex(cb => cb.resolve === resolve);
+        if (idx !== -1) this.flushCallbacks.splice(idx, 1);
+        reject(new Error("Flush timeout"));
+      }, 5000);
+
+      this.flushCallbacks.push({ resolve, reject, timeout });
+      this.sendMessage("editor:flush", payload);
+    });
   }
 
   attemptReconnect() {

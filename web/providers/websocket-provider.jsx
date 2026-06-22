@@ -65,6 +65,7 @@ export function WebSocketProvider({ interviewId, children }) {
   const contextValue = {
     role,
     sendMessage: (type, payload) => wsClient.sendMessage(type, payload),
+    flushEditor: (payload) => wsClient.flushEditor(payload),
   };
 
   return (
