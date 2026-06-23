@@ -39,6 +39,13 @@ function CreateInterview() {
             toast("Please enter all details!")
             return;
         }
+
+        const types = formData?.interviewType || [];
+        if (types.includes("Technical") && types.length > 1) {
+            toast.error("Technical interviews cannot be combined with other interview types.");
+            return;
+        }
+
         setStep(step + 1)
     }
     const onCreateLink = (interview_id) => {

@@ -10,6 +10,8 @@ import { useWebSocket } from '../../providers/websocket-provider';
 import { InterviewControlBar } from './interview-control-bar';
 import { CandidateStatusPanel } from './candidate-status-panel';
 import { ExecutionPanel } from './execution-panel';
+import { CodingChallengePanel } from './coding-challenge-panel';
+import { useCodingStore } from '../../store/use-coding-store';
 import { Play } from 'lucide-react';
 
 export function MonacoWorkspace() {
@@ -31,6 +33,10 @@ export function MonacoWorkspace() {
   const language = useEditorStore((state) => state.language);
   const setCode = useEditorStore((state) => state.setCode);
   const setLanguage = useEditorStore((state) => state.setLanguage);
+  const setEditor = useEditorStore((state) => state.setEditor);
+
+  // Coding Challenge Mode
+  const codingPhase = useCodingStore((state) => state.phase);
 
   // Grab WS send function & role
   const { sendMessage, role } = useWebSocket();
@@ -59,7 +65,25 @@ export function MonacoWorkspace() {
   // --- Editor Integration ---
   const handleEditorDidMount = (editor) => {
     editorRef.current = editor;
+    setEditor(editor); // expose instance for imperative focus (Coding Mode)
   };
+
+  // When a coding round begins, bring the candidate straight into the editor:
+  // focus it, reveal the top, and place the cursor on line 1.
+  useEffect(() => {
+    if (codingPhase !== 'coding') return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    const t = setTimeout(() => {
+      try {
+        editor.focus();
+        editor.revealLine(1);
+        editor.setPosition({ lineNumber: 1, column: 1 });
+        editor.getContainerDomNode?.()?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+      } catch (_) { /* editor not ready */ }
+    }, 120);
+    return () => clearTimeout(t);
+  }, [codingPhase]);
 
   const handleEditorChange = (value) => {
     if (isRemoteUpdate.current || isLocked) return;
@@ -100,20 +124,27 @@ export function MonacoWorkspace() {
     }
   }, [code]);
 
+  const fileExt = { javascript: 'js', typescript: 'ts', python: 'py', java: 'java', cpp: 'cpp', c: 'c' }[language] || 'txt';
+
   return (
-    <div className="w-full h-full min-h-[500px] flex flex-col border border-gray-300 rounded overflow-hidden relative bg-white">
+    <div className="w-full h-full min-h-[500px] flex flex-col overflow-hidden relative bg-white">
       {/* Dynamic Control Bar */}
       {role === 'interviewer' ? <InterviewControlBar /> : <CandidateStatusPanel />}
 
       {/* Top Bar for Language Selector & Run Button */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-200">Editor</span>
-          <select 
-            value={language} 
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#252526] border-b border-black/40">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+            <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
+            <span className="w-3 h-3 rounded-full bg-[#28c840]" />
+          </div>
+          <span className="text-xs font-medium text-gray-400 ml-1.5">main.{fileExt}</span>
+          <select
+            value={language}
             onChange={handleLanguageChange}
             disabled={isLocked}
-            className="bg-gray-700 text-sm text-white rounded px-2 py-1 outline-none border border-gray-600 focus:border-blue-500 disabled:opacity-50"
+            className="ml-1 bg-[#3c3c3c] text-xs text-gray-100 rounded-md px-2.5 py-1.5 outline-none border border-white/10 hover:border-white/20 focus:border-indigo-500 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <option value="javascript">JavaScript</option>
             <option value="typescript">TypeScript</option>
@@ -123,16 +154,20 @@ export function MonacoWorkspace() {
             <option value="c">C</option>
           </select>
         </div>
-        
+
         <button
           disabled={true}
           title="Code execution is temporarily disabled (Coming Soon)"
-          className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-gray-400 bg-gray-700 border border-gray-600 cursor-not-allowed rounded shadow-sm"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-gray-400 bg-white/5 border border-white/10 cursor-not-allowed rounded-md"
         >
-          <Play className="w-4 h-4 opacity-50" />
-          Run Code (Coming Soon)
+          <Play className="w-3.5 h-3.5 opacity-50" />
+          Run Code
+          <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/10 text-gray-400">Soon</span>
         </button>
       </div>
+
+      {/* Pinned coding challenge (visible only during a coding round) */}
+      <CodingChallengePanel />
 
       {/* Editor Container */}
       <div className="flex-1 relative">

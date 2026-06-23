@@ -7,6 +7,11 @@ export async function POST(req) {
         const body = await req.json();
         const { jobPosition, jobDescription, interviewDuration, interviewType } = body;
 
+        // Backend validation for mutually exclusive Technical interview type
+        if (Array.isArray(interviewType) && interviewType.includes("Technical") && interviewType.length > 1) {
+            return NextResponse.json({ error: "Technical interviews cannot be combined with other interview types." }, { status: 400 });
+        }
+
         console.log("--- AI Model API called ---");
         console.log("Received fields:", { jobPosition, jobDescription: jobDescription?.substring(0, 50), interviewDuration, interviewType });
         console.log("API Key present:", !!process.env.OPENROUTER_API_KEY);

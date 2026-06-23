@@ -2,6 +2,7 @@ import { useEditorStore } from '../../store/use-editor-store';
 import { usePresenceStore } from '../../store/use-presence-store';
 import { useRoomStore } from '../../store/use-room-store';
 import { useExecutionStore } from '../../store/use-execution-store';
+import { useCodingStore } from '../../store/use-coding-store';
 
 export function handleSocketEvent(message) {
   if (!message || !message.type) return;
@@ -61,7 +62,11 @@ export function handleSocketEvent(message) {
       }
       break;
 
-
+    case 'coding:sync':
+      if (payload) {
+        useCodingStore.getState().syncCoding(payload);
+      }
+      break;
 
     default:
       // Ignore unhandled events

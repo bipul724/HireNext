@@ -3,7 +3,15 @@ import { env } from "./env.js";
 import { logger } from "../utils/logger.js";
 
 // State client: read/write the editor document.
-export const redisClient = createClient({ url: env.REDIS_URL });
+// reconnectStrategy keeps the client retrying after transient socket errors
+// (EADDRNOTAVAIL, ECONNRESET, etc.) instead of giving up — capped exponential
+// backoff. Duplicated clients (pub/sub) inherit these options.
+export const redisClient = createClient({
+  url: env.REDIS_URL,
+  socket: {
+    reconnectStrategy: (retries) => Math.min(retries * 200, 5000),
+  },
+});
 
 // Pub/sub needs separate connections. A subscriber connection can't run
 // normal commands, so publisher and subscriber must be distinct clients.

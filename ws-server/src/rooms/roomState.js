@@ -133,6 +133,98 @@ export async function updateRoomStatus(interviewId, mutateFn) {
 
 
 
+// --- Coding Challenge Mode state -----------------------------------------
+// Authoritative state for the active coding round, so it survives refresh,
+// reconnect, and is visible to both candidate and interviewer.
+const roomCodingKey = (interviewId) => `room:${interviewId}:coding`;
+
+const DEFAULT_CODING = {
+  phase: 'idle',     // 'idle' | 'presented' | 'coding' | 'ended'
+  challenge: null,   // { title, description, difficulty, timeLimit }
+  startedAt: null,   // server ms when the candidate began coding
+};
+
+export async function getRoomCoding(interviewId) {
+  const raw = await redisClient.get(roomCodingKey(interviewId));
+  let coding = { ...DEFAULT_CODING };
+  if (raw) {
+    try { coding = JSON.parse(raw); } catch {}
+  }
+  return { ...coding, serverTime: Date.now() };
+}
+
+export async function saveRoomCoding(interviewId, coding) {
+  const payload = JSON.stringify({
+    phase: coding.phase ?? 'idle',
+    challenge: coding.challenge ?? null,
+    startedAt: coding.startedAt ?? null,
+  });
+  await redisClient.set(roomCodingKey(interviewId), payload, { EX: ROOM_TTL_SECONDS });
+}
+
+// Remove coding state entirely. Called on genuine interview completion so a
+// reopened interview link does not restore a stale challenge. Idempotent.
+export async function clearRoomCoding(interviewId) {
+  await redisClient.del(roomCodingKey(interviewId));
+}
+
+// Remove room status (timer/lock) on genuine interview completion. Idempotent.
+export async function clearRoomStatus(interviewId) {
+  await redisClient.del(roomStatusKey(interviewId));
+}
+
+// Remove the editor doc on genuine interview completion. Idempotent.
+// Safe only AFTER the candidate's code has been fetched/persisted to
+// interview-feedback (the canonical interview:complete path guarantees this);
+// prevents a reopened link from restoring stale code via editor:init.
+export async function clearRoomDoc(interviewId) {
+  await redisClient.del(roomKey(interviewId));
+}
+
+// Atomic read-modify-write for coding state, mirroring updateRoomStatus().
+// mutateFn(coding) returns the next state, or null to abort (no write).
+// Guarantees no lost updates / stale overwrites across concurrent
+// coding:present / coding:start / coding:end messages.
+export async function updateRoomCoding(interviewId, mutateFn) {
+  const key = roomCodingKey(interviewId);
+
+  while (true) {
+    await redisClient.watch(key);
+
+    const raw = await redisClient.get(key);
+
+    let coding = { ...DEFAULT_CODING };
+    if (raw) {
+      try { coding = JSON.parse(raw); } catch {}
+    }
+
+    const updated = mutateFn(coding);
+
+    if (!updated) {
+      // Guard rejected the transition — release the watch, write nothing.
+      await redisClient.unwatch();
+      return { ...coding, serverTime: Date.now() };
+    }
+
+    const payload = JSON.stringify({
+      phase: updated.phase ?? 'idle',
+      challenge: updated.challenge ?? null,
+      startedAt: updated.startedAt ?? null,
+    });
+
+    const multi = redisClient.multi();
+    multi.set(key, payload, { EX: ROOM_TTL_SECONDS });
+    const result = await multi.exec();
+
+    if (result === null) {
+      // Another client modified the key mid-transaction — retry.
+      continue;
+    }
+
+    return { ...updated, serverTime: Date.now() };
+  }
+}
+
 const executionResultKey = (interviewId) => `room:${interviewId}:executionResult`;
 const executionLockKey = (interviewId) => `room:${interviewId}:executionLock`;
 

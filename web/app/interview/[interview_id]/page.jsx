@@ -40,7 +40,22 @@ function Interview() {
         }
 
         if (Interviews && Interviews.length > 0) {
-            console.log(Interviews[0]);
+            // Block re-entry: if this candidate already has a feedback record for
+            // this interview, it is already completed — don't let them retake it
+            // (which would restore old code and create a duplicate submission).
+            const { data: existingFeedback } = await supabase
+                .from("interview-feedback")
+                .select("id")
+                .eq("interview_id", interview_id)
+                .eq("userEmail", userEmail)
+                .limit(1);
+
+            if (existingFeedback && existingFeedback.length > 0) {
+                toast.error("You have already completed this interview.");
+                setLoading(false);
+                return;
+            }
+
             setInterviewInfo({
                 userName: userName,
                 userEmail: userEmail,

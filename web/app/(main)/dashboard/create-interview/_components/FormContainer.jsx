@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { InterviewType } from "@/services/Constants";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,16 @@ function FormContainer({ onHandleInputChange,GoToNext }){
                 // If already selected, remove it (filter out)
                 return prev.filter(item => item !== typeName);
             } else {
+                // Validation Rules
+                if (typeName === "Technical" && prev.length > 0) {
+                    toast.error("Technical interviews cannot be combined with other interview types. Please select either Technical or non-technical categories.");
+                    return prev;
+                }
+                if (typeName !== "Technical" && prev.includes("Technical")) {
+                    toast.error("Please deselect Technical before choosing other interview categories.");
+                    return prev;
+                }
+
                 // If not selected, add it
                 return [...prev, typeName];
             }

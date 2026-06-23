@@ -8,12 +8,12 @@ export function ExecutionPanel() {
   const hasOutput = stdout || stderr || exitCode !== null;
 
   return (
-    <div className="flex flex-col h-64 bg-gray-900 border-t border-gray-700 text-gray-300 font-mono text-sm overflow-hidden">
+    <div className="flex flex-col h-64 bg-[#1e1e1e] border-t border-black/40 text-gray-300 font-mono text-sm overflow-hidden">
       {/* Panel Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#252526] border-b border-black/40">
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-gray-400" />
-          <span className="font-medium text-gray-200">Execution Output</span>
+          <span className="font-medium text-gray-200 text-[13px]">Execution Output</span>
           {isRunning && (
             <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 flex items-center gap-1.5 animate-pulse">
               <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
