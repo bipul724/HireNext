@@ -6,6 +6,7 @@ import { User, Settings as SettingsIcon, Bell, Shield, Save, Key, Trash2, LogOut
 import { toast } from "sonner";
 import { supabase } from "@/services/supabaseClient";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 /* --- UI COMPONENTS (Internal) --- */
 
@@ -18,8 +19,8 @@ const Card = ({ children, className = "" }) => (
 const SectionHeader = ({ icon: Icon, title, description }) => (
   <div className="mb-6 border-b border-gray-100 pb-4">
     <div className="flex items-center gap-2 mb-1">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="w-5 h-5 text-blue-600" />
+      <div className="p-2 bg-primary/10 rounded-lg">
+        <Icon className="w-5 h-5 text-primary" />
       </div>
       <h2 className="text-lg font-bold text-gray-800">{title}</h2>
     </div>
@@ -32,8 +33,8 @@ const Input = ({ label, id, ...props }) => (
     {label && <label htmlFor={id} className="text-sm font-medium text-gray-700">{label}</label>}
     <input
       id={id}
-      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 text-gray-900"
       {...props}
+      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-gray-400 text-gray-900"
     />
   </div>
 );
@@ -44,8 +45,8 @@ const Select = ({ label, id, children, ...props }) => (
     {label && <label htmlFor={id} className="text-sm font-medium text-gray-700">{label}</label>}
     <select
       id={id}
-      className="px-3 py-2 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer text-gray-900"
       {...props}
+      className="px-3 py-2 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer text-gray-900"
     >
       {children}
     </select>
@@ -55,20 +56,21 @@ const Select = ({ label, id, children, ...props }) => (
 const Toggle = ({ label, checked, onChange }) => (
   <label className="flex items-center gap-3 cursor-pointer group select-none">
     <div className="relative">
-      <input
-        type="checkbox"
-        className="sr-only peer"
-        checked={checked}
-        onChange={onChange}
-      />
-      <div className={`
-        w-11 h-6 rounded-full transition-colors duration-200 ease-in-out
-        ${checked ? 'bg-blue-600' : 'bg-gray-200'}
-      `}></div>
-      <div className={`
-        absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-transform duration-200 ease-in-out shadow-sm
-        ${checked ? 'translate-x-full' : 'translate-x-0'}
-      `}></div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange({ target: { checked: !checked } })}
+        className={`
+          relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+          ${checked ? 'bg-primary' : 'bg-gray-200'}
+        `}
+      >
+        <span className={`
+          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out
+          ${checked ? 'translate-x-6' : 'translate-x-1'}
+        `} />
+      </button>
     </div>
     <span className="text-sm text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
       {label}
@@ -172,7 +174,7 @@ export default function Settings() {
                 <label htmlFor="bio" className="text-sm font-medium text-gray-700">Bio</label>
                 <textarea
                   id="bio"
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-h-[120px] resize-y text-gray-900"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none min-h-[120px] resize-y text-gray-900"
                   placeholder="Briefly describe your professional background..."
                   value={profile.bio}
                   onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
@@ -244,17 +246,14 @@ export default function Settings() {
           </Card>
 
           <div className="flex justify-end pt-4">
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className={`
-                flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all hover:bg-blue-700 hover:shadow-lg active:scale-95
-                ${loading ? 'opacity-70 cursor-not-allowed' : ''}
-              `}
+              className={`flex items-center gap-2 px-8 py-3 h-auto rounded-xl font-bold transition-all hover:shadow-lg active:scale-95 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               <Save className="w-4 h-4" />
               {loading ? 'Processing...' : 'Save Settings'}
-            </button>
+            </Button>
           </div>
         </form>
 
@@ -266,21 +265,21 @@ export default function Settings() {
           {/* Logout Box */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex gap-4">
-              <div className="bg-indigo-100 p-3 rounded-full h-fit">
-                <LogOut className="w-5 h-5 text-indigo-600" />
+              <div className="bg-slate-100 p-3 rounded-full h-fit">
+                <LogOut className="w-5 h-5 text-slate-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 text-lg">Sign Out</h3>
                 <p className="text-sm text-gray-500 mt-0.5">Log out of your HireNext account on this device.</p>
               </div>
             </div>
-            <button
+            <Button
               type="button"
               onClick={handleLogout}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors"
+              className="bg-slate-900 text-white hover:bg-slate-800 px-6 py-2 h-auto rounded-lg text-sm font-bold transition-colors"
             >
               Logout
-            </button>
+            </Button>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -293,13 +292,14 @@ export default function Settings() {
                 <p className="text-sm text-gray-500 mt-0.5">Maintain your account security with a strong password.</p>
               </div>
             </div>
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={handlePasswordUpdate}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 h-auto rounded-lg text-sm font-bold transition-colors"
             >
               Update Password
-            </button>
+            </Button>
           </div>
 
           <div className="bg-red-50/50 border border-red-100 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">

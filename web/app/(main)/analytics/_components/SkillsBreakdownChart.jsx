@@ -54,8 +54,9 @@ function SkillsBreakdownChart({ data }) {
                     </ResponsiveContainer>
                 </div>
             ) : (
-                <div className="h-[280px] flex items-center justify-center text-gray-400">
-                    No skill data available yet
+                <div className="h-[280px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400">
+                    <p className="text-sm font-medium text-slate-500">No skill data available</p>
+                    <p className="text-xs mt-1">Interview candidates to see skill breakdowns.</p>
                 </div>
             )}
         </div>

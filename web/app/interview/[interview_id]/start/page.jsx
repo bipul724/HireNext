@@ -21,8 +21,15 @@ import { ConnectionBadge } from '@/components/editor/connection-badge';
 import { CodingChallengeModal } from '@/components/editor/coding-challenge-modal';
 import { useCodingStore } from '@/store/use-coding-store';
 
-// Initialize Vapi once
-const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+// Initialize Vapi safely
+let vapi = null;
+try {
+    if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY) {
+        vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY);
+    }
+} catch (e) {
+    console.error("Vapi initialization failed:", e);
+}
 
 // Parse "5 minutes" / "30 minutes" / "1 hour" → seconds.
 // Adds a 5-min grace buffer so Vapi never cuts off before our own UI timer, and
@@ -92,6 +99,7 @@ function StartInterview() {
     const [conversation, setConversation] = useState(null);
     const [time, setTime] = useState(0);
     const [mobileTab, setMobileTab] = useState("interview"); // "interview" | "code"
+    const [vapiError, setVapiError] = useState(null);
     const timerRef = useRef(null);
     const callStartedRef = useRef(false);
 
@@ -349,7 +357,24 @@ function StartInterview() {
             silenceTimeoutSeconds,
         });
 
-        vapi.start(assistantOptions);
+        if (!vapi || !process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY) {
+            setVapiError("Voice Agent configuration missing or invalid. Cannot start interview.");
+            return;
+        }
+
+        try {
+            vapi.start(assistantOptions).catch(err => {
+                console.error("Vapi start rejected:", err);
+                if (err?.name === "NotAllowedError") {
+                    setVapiError("Microphone permission denied. Please allow microphone access in your browser settings and refresh the page.");
+                } else {
+                    setVapiError("Failed to access microphone or connect to voice agent. Please check your network and hardware.");
+                }
+            });
+        } catch (err) {
+            console.error("Vapi start threw:", err);
+            setVapiError("Failed to start voice agent due to an unexpected hardware or software error.");
+        }
     }, [interviewInfo, interview_id]);
 
     useEffect(() => {
@@ -527,6 +552,23 @@ function StartInterview() {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes < 10 ? '0' : ''}${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    }
+
+    if (vapiError) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+                    <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Phone className="h-8 w-8" />
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">Connection Failed</h2>
+                    <p className="text-slate-600 mb-6">{vapiError}</p>
+                    <button onClick={() => window.location.reload()} className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors">
+                        Retry Connection
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     return (

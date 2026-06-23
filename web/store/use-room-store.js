@@ -4,7 +4,7 @@ export const useRoomStore = create((set) => ({
   interviewStatus: 'not_started', // not_started, running, paused, ended
   timerState: 'stopped', // stopped, running, paused
   startedAt: null,
-  pausedAt: null,
+
   elapsedTime: 0,
   editorLocked: false,
   serverTimeOffset: 0,
@@ -27,19 +27,19 @@ export const useRoomStore = create((set) => ({
     interviewStatus: 'running',
     timerState: 'running',
     startedAt: now,
-    pausedAt: null,
+
   }),
 
   optimisticTimerPause: (now) => set((state) => ({
     timerState: 'paused',
-    pausedAt: now,
+
     elapsedTime: state.elapsedTime + (now - state.startedAt),
   })),
 
   optimisticTimerResume: (now) => set({
     timerState: 'running',
     startedAt: now,
-    pausedAt: null,
+
   }),
 
   optimisticTimerEnd: (now) => set((state) => ({
@@ -47,7 +47,7 @@ export const useRoomStore = create((set) => ({
     timerState: 'stopped',
     elapsedTime: state.timerState === 'running' ? state.elapsedTime + (now - state.startedAt) : state.elapsedTime,
     startedAt: null,
-    pausedAt: null,
+
   })),
 
   optimisticLock: (locked) => set({

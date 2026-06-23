@@ -48,7 +48,7 @@ function DashboardLayout({ children }) {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-secondary flex items-center justify-center">
+            <div className="min-h-screen bg-teal-50/60 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="text-gray-500">Loading...</p>
@@ -62,7 +62,7 @@ function DashboardLayout({ children }) {
     }
 
     return (
-        <div className="bg-secondary">
+        <div className="bg-teal-50/60 min-h-screen">
             <DashboardProvider>
                 <div>
                     {children}

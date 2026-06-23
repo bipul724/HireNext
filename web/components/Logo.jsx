@@ -36,11 +36,11 @@ const Logo = ({ size = 'md', className = '' }) => {
 
     return (
         <div className={`flex items-center gap-2 ${className}`}>
-            <div className={`flex ${currentSize.icon} items-center justify-center rounded-lg bg-indigo-600 shadow-lg shadow-indigo-500/20`}>
+            <div className={`flex ${currentSize.icon} items-center justify-center rounded-lg bg-teal-600 shadow-lg shadow-teal-500/20`}>
                 <Sparkles className={`${currentSize.iconInner} text-white`} />
             </div>
             <span className={`${currentSize.text} font-bold tracking-tight text-slate-900`}>
-                Hire<span className="text-indigo-600">Next</span>
+                Hire<span className="text-teal-600">Next</span>
             </span>
         </div>
     );

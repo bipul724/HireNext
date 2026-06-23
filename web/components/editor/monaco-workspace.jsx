@@ -33,7 +33,7 @@ export function MonacoWorkspace() {
   const language = useEditorStore((state) => state.language);
   const setCode = useEditorStore((state) => state.setCode);
   const setLanguage = useEditorStore((state) => state.setLanguage);
-  const setEditor = useEditorStore((state) => state.setEditor);
+
 
   // Coding Challenge Mode
   const codingPhase = useCodingStore((state) => state.phase);
@@ -65,7 +65,6 @@ export function MonacoWorkspace() {
   // --- Editor Integration ---
   const handleEditorDidMount = (editor) => {
     editorRef.current = editor;
-    setEditor(editor); // expose instance for imperative focus (Coding Mode)
   };
 
   // When a coding round begins, bring the candidate straight into the editor:

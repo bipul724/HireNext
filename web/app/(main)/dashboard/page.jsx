@@ -5,9 +5,12 @@ import LatestInterviewsList from "./_components/LatestInterviewsList"
 
 function Dashboard(){
     return (
-        <div>
+        <div className="space-y-8">
             {/* <WelcomeContainer /> */}
-            <h2 className="my-3 text-2xl font-bold">Dashboard</h2>
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+                <p className="text-sm text-slate-500 mt-1">Create and manage your AI-driven interviews.</p>
+            </div>
             <CreateOptions />
             <LatestInterviewsList />
         </div>

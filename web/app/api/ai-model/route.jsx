@@ -1,6 +1,7 @@
 import { QUESTIONS_PROMPT } from "@/services/Constants";
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { getOpenRouterClient } from "@/lib/ai/openrouter";
+import { parseAiResponse } from "@/lib/ai/parse-ai-response";
 
 export async function POST(req) {
     try {
@@ -16,17 +17,40 @@ export async function POST(req) {
         console.log("Received fields:", { jobPosition, jobDescription: jobDescription?.substring(0, 50), interviewDuration, interviewType });
         console.log("API Key present:", !!process.env.OPENROUTER_API_KEY);
 
-        const FINAL_PROMPT = QUESTIONS_PROMPT
-            .replace("{{jobTitle}}", jobPosition)
-            .replace("{{jobDescription}}", jobDescription)
-            .replace("{{duration}}", interviewDuration)
-            .replace("{{type}}", interviewType)
-            .replace("{{jobTitle}}", jobPosition);
+        // Format the interview type(s) in a recruiter-friendly way:
+        //   ["Behavioral"]                       -> "Behavioral"
+        //   ["Behavioral", "Leadership"]         -> "Behavioral and Leadership"
+        //   ["Experience","Problem Solving","X"] -> "Experience, Problem Solving and X"
+        const formatInterviewType = (t) => {
+            const arr = Array.isArray(t) ? t.filter(Boolean) : (t ? [t] : []);
+            if (arr.length === 0) return "General";
+            if (arr.length === 1) return String(arr[0]);
+            return `${arr.slice(0, -1).join(", ")} and ${arr[arr.length - 1]}`;
+        };
 
-        const openai = new OpenAI({
-            baseURL: "https://openrouter.ai/api/v1",
-            apiKey: process.env.OPENROUTER_API_KEY,
-        })
+        // Replace ALL occurrences of every placeholder. Using split/join (rather
+        // than String.replace, which only swaps the first match) so multi-use
+        // placeholders like {{type}} / {{jobTitle}} are fully interpolated, and
+        // so replacement values containing "$" are inserted literally.
+        const replacements = {
+            "{{jobTitle}}": jobPosition,
+            "{{jobDescription}}": jobDescription,
+            "{{duration}}": interviewDuration,
+            "{{type}}": formatInterviewType(interviewType),
+        };
+
+        let FINAL_PROMPT = QUESTIONS_PROMPT;
+        for (const [token, value] of Object.entries(replacements)) {
+            FINAL_PROMPT = FINAL_PROMPT.split(token).join(value ?? "");
+        }
+
+        // Safety check: warn if any placeholder slipped through unreplaced.
+        const leftover = FINAL_PROMPT.match(/\{\{\s*[\w.]+\s*\}\}/g);
+        if (leftover) {
+            console.warn("[ai-model] Unreplaced prompt placeholders:", leftover);
+        }
+
+        const openai = getOpenRouterClient();
 
         const completion = await openai.chat.completions.create({
             model: "nvidia/nemotron-3-super-120b-a12b:free",
@@ -38,15 +62,7 @@ export async function POST(req) {
         const aiResponse = completion.choices[0].message.content;
 
         // --- CLEANING LOGIC START ---
-        const start = aiResponse.indexOf('{');
-        const end = aiResponse.lastIndexOf('}') + 1;
-
-        if (start === -1 || end === -1) {
-            throw new Error("AI did not generate valid JSON");
-        }
-
-        const jsonString = aiResponse.substring(start, end);
-        const parsedResponse = JSON.parse(jsonString);
+        const parsedResponse = parseAiResponse(aiResponse, "AI did not generate valid JSON");
         // --- CLEANING LOGIC END ---
 
         return NextResponse.json(parsedResponse, { status: 200 })

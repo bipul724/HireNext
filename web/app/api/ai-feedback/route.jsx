@@ -1,6 +1,7 @@
 import { FEEDBACK_PROMPT } from "@/services/Constants";
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { getOpenRouterClient } from "@/lib/ai/openrouter";
+import { parseAiResponse } from "@/lib/ai/parse-ai-response";
 import { createClient } from "@supabase/supabase-js";
 
 // Server-side Supabase client. Prefers the service-role key if present
@@ -12,22 +13,19 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req) {
-    const {
-        conversation,
-        codeSubmission = "",
-        codeLanguage = "",
-        recordId = null,
-    } = await req.json();
-
-    let FINAL_PROMPT = FEEDBACK_PROMPT.replace("{{conversation}}", JSON.stringify(conversation));
-    FINAL_PROMPT = FINAL_PROMPT.replace("{{code_submission}}", codeSubmission);
-    FINAL_PROMPT = FINAL_PROMPT.replace("{{code_language}}", codeLanguage);
-
     try {
-        const openai = new OpenAI({
-            baseURL: "https://openrouter.ai/api/v1",
-            apiKey: process.env.OPENROUTER_API_KEY,
-        });
+        const {
+            conversation,
+            codeSubmission = "",
+            codeLanguage = "",
+            recordId = null,
+        } = await req.json();
+
+        let FINAL_PROMPT = FEEDBACK_PROMPT.replace("{{conversation}}", JSON.stringify(conversation));
+        FINAL_PROMPT = FINAL_PROMPT.replace("{{code_submission}}", codeSubmission);
+        FINAL_PROMPT = FINAL_PROMPT.replace("{{code_language}}", codeLanguage);
+
+        const openai = getOpenRouterClient();
 
         const completion = await openai.chat.completions.create({
             model: "nvidia/nemotron-3-super-120b-a12b:free",
@@ -45,9 +43,7 @@ export async function POST(req) {
         if (recordId) {
             try {
                 const content = message?.content || "";
-                const jsonMatch = content.match(/\{[\s\S]*\}/);
-                if (!jsonMatch) throw new Error("No JSON found in AI response");
-                const feedbackData = JSON.parse(jsonMatch[0]);
+                const feedbackData = parseAiResponse(content);
 
                 const { error: updateError } = await supabaseAdmin
                     .from("interview-feedback")

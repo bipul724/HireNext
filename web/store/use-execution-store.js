@@ -7,7 +7,7 @@ export const useExecutionStore = create((set) => ({
   exitCode: null,
   executionTime: 0,
   executedBy: '',
-  executionId: null,
+
 
   setRunning: (payload) => set({
     isRunning: true,
@@ -16,7 +16,7 @@ export const useExecutionStore = create((set) => ({
     exitCode: null,
     executionTime: 0,
     executedBy: payload?.by || 'Someone',
-    executionId: payload?.executionId || null,
+
   }),
 
   setResult: (payload) => set({
@@ -26,7 +26,7 @@ export const useExecutionStore = create((set) => ({
     exitCode: payload.exitCode ?? null,
     executionTime: payload.executionTime || 0,
     executedBy: payload.by || '',
-    executionId: payload.executionId || null,
+
   }),
 
   clearOutput: () => set({

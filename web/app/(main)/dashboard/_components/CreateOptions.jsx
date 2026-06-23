@@ -1,22 +1,26 @@
-import { PhoneIcon, VideoIcon } from "lucide-react"
+import { VideoIcon, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 function CreateOptions(){
     return (
-        <div className="grid grid-cols-2 gap-5">
-            <Link href={"/dashboard/create-interview"} className="bg-white border border-gray-200 p-5 rounded-lg p-5 flex flex-col cursor-pointer gap-2"
-            
-            >
-                <VideoIcon className="p-3 text-primary bg-blue-50 rounded-lg h-12 w-12"/>
-                <h2 className="font-bold">Create New Interview</h2>
-                <p className="text-gray-500">Create AI Interviews and schedule them with candidates</p>
-            </Link>
-            <div className="bg-white border border-gray-200 p-5 rounded-lg p-5 flex flex-col cursor-pointer gap-2">
-                <PhoneIcon className="p-3 text-primary bg-blue-50 rounded-lg h-12 w-12"/>
-                <h2 className="font-bold">Create Phone Screening Call</h2>
-                <p className="text-gray-500">Schedule phone screening calls with candidates</p>
+        <Link
+            href={"/dashboard/create-interview"}
+            className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/80 p-5 sm:p-6 rounded-2xl cursor-pointer shadow-sm transition-all hover:shadow-md hover:border-teal-200"
+        >
+            <div className="flex items-center gap-4">
+                <span className="p-3 text-teal-600 bg-teal-50 rounded-xl shrink-0">
+                    <VideoIcon className="h-6 w-6" />
+                </span>
+                <div>
+                    <h2 className="font-semibold text-slate-900">Create New Interview</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Create AI Interviews and schedule them with candidates</p>
+                </div>
             </div>
-        </div>
+            <span className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-teal-500/30 transition-all group-hover:bg-teal-700 group-hover:shadow-md">
+                Get Started
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+        </Link>
     )
 }
 

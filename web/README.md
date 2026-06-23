@@ -53,7 +53,7 @@ After each interview, candidates receive an **instant AI-generated feedback repo
 - 📊 **Instant AI Feedback** — Receive structured feedback with ratings (technical skills, communication, problem-solving, experience) and a hire recommendation
 - 🔐 **Google OAuth Authentication** — Seamless sign-in via Supabase Auth with Google OAuth
 - 📋 **Interview Dashboard** — Create, manage, and track all interviews from a centralized dashboard
-- 📅 **Scheduled Interviews** — Schedule interviews and share unique links with candidates
+- 📅 **Interview Workspace** — Manage active interviews and review candidate feedback
 - 📈 **Analytics** — Visualize interview data and hiring metrics with interactive Recharts graphs
 - 🔗 **Shareable Interview Links** — Candidates join directly from the browser — no software installation required
 - 🎨 **3D Visual Landing Page** — Stunning hero section powered by Spline 3D scenes
@@ -220,7 +220,7 @@ HireNext/
 │   │   ├── _components/            # Shared components (AppSidebar)
 │   │   ├── dashboard/              # Dashboard & create interview pages
 │   │   ├── all-interview/          # List all interviews
-│   │   ├── scheduled-interview/    # Scheduled interviews with details
+│   │   ├── scheduled-interview/    # Interview Workspace with details
 │   │   ├── analytics/              # Interview analytics & charts
 │   │   ├── billing/                # Billing & pricing page
 │   │   ├── settings/               # User settings

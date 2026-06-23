@@ -30,11 +30,16 @@ export function WebSocketProvider({ interviewId, children }) {
         const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
         
         // Dynamically determine role based on interview ownership
-        const { data: interview } = await supabase
+        const { data: interview, error: fetchError } = await supabase
           .from('Interviews')
           .select('userEmail')
           .eq('interview_id', interviewId)
           .single();
+
+        if (fetchError) {
+          console.error('[WebSocket] Failed to verify interview ownership:', fetchError);
+          return null; // Fail safely rather than silently downgrading
+        }
 
         let determinedRole = 'candidate';
         if (interview && interview.userEmail === userEmail) {

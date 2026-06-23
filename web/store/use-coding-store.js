@@ -43,7 +43,7 @@ export const useCodingStore = create((set) => ({
 
   endCoding: () => set({ phase: 'ended', showModal: false }),
 
-  dismissModal: () => set({ showModal: false }),
+
 
   reset: () => set({ phase: 'idle', challenge: null, startedAt: null, showModal: false }),
 }));
