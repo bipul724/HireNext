@@ -8,7 +8,11 @@ import TopCandidates from './_components/TopCandidates'
 import RecruiterInsights from './_components/RecruiterInsights'
 import InterviewPerformance from './_components/InterviewPerformance'
 import ActivityFeed from './_components/ActivityFeed'
-import SkillsBreakdownChart from './_components/SkillsBreakdownChart'
+import dynamic from "next/dynamic";
+const SkillsBreakdownChart = dynamic(
+  () => import('./_components/SkillsBreakdownChart'),
+  { ssr: false, loading: () => <div className="h-[300px] flex items-center justify-center text-slate-400">Loading chart...</div> }
+);
 import RecentCandidates from './_components/RecentCandidates'
 import { Users, Calendar, TrendingUp, Award, Target, UserCheck } from 'lucide-react'
 

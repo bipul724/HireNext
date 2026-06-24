@@ -526,9 +526,34 @@ export function handleConnection(ws, ctx) {
       // Redis failure during disconnect cleanup must not crash the server.
       logger.error(`[close] cleanup failed for interview:${interviewId} (${ws.email}):`, err.message);
     }
+    
+    // 4. Best-effort final snapshot for code recovery
+    try {
+      if (ws.role === "candidate") {
+        const doc = await getRoomDoc(interviewId);
+        if (doc && doc.code) {
+          saveSnapshot(interviewId, ws.email, doc.code, doc.language, 'WebSocket Disconnected').catch(e => {
+            logger.warn(`[close] saveSnapshot failed silently:`, e.message);
+          });
+        }
+      }
+    } catch (err) {
+      // Never block disconnect cleanup
+    }
   });
 
   ws.on("error", (err) => {
     logger.error(`socket error (${ws.email}):`, err.message);
+    
+    // Best-effort final snapshot on error crash
+    try {
+      if (ws.role === "candidate") {
+        getRoomDoc(interviewId).then(doc => {
+          if (doc && doc.code) {
+            saveSnapshot(interviewId, ws.email, doc.code, doc.language, 'WebSocket Error');
+          }
+        }).catch(() => {});
+      }
+    } catch (_) {}
   });
 }

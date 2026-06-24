@@ -15,7 +15,12 @@ import { supabase } from "@/services/supabaseClient";
 // Import Editor Components
 import { WebSocketProvider } from '@/providers/websocket-provider';
 import { wsClient } from '@/lib/websocket/client';
-import { MonacoWorkspace } from '@/components/editor/monaco-workspace';
+import dynamic from "next/dynamic";
+
+const MonacoWorkspace = dynamic(
+  () => import('@/components/editor/monaco-workspace').then((mod) => mod.MonacoWorkspace),
+  { ssr: false, loading: () => <div className="h-full flex items-center justify-center text-slate-400">Loading code editor...</div> }
+);
 import { PresenceBar } from '@/components/editor/presence-bar';
 import { ConnectionBadge } from '@/components/editor/connection-badge';
 import { CodingChallengeModal } from '@/components/editor/coding-challenge-modal';
@@ -195,6 +200,7 @@ function StartInterview() {
                     code_language: codeLanguage,
                     feedback: null, 
                     recommended: false,
+                    processing_status: "pending",
                 })
                 .select();
 
@@ -336,6 +342,20 @@ function StartInterview() {
             // ✅ Honor the configured length; ✅ don't end while the candidate codes/thinks.
             maxDurationSeconds: durationSeconds,
             silenceTimeoutSeconds,
+            // Correlation for the backend Vapi webhook — lets feedback be generated
+            // server-side from the end-of-call-report even if this tab is gone.
+            // Harmless when no webhook is configured.
+            metadata: {
+                interview_id,
+                userEmail: interviewInfo?.userEmail,
+                userName: interviewInfo?.userName,
+                type: interviewInfo?.interviewData?.type || "",
+            },
+            // Only attach the server URL when configured, so local dev (no public
+            // URL) behaves exactly as before.
+            ...(process.env.NEXT_PUBLIC_VAPI_SERVER_URL
+                ? { server: { url: process.env.NEXT_PUBLIC_VAPI_SERVER_URL }, serverMessages: ["end-of-call-report"] }
+                : {}),
             model: {
                 provider: "google",
                 model: "gemini-2.0-flash",

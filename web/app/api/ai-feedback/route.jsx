@@ -1,8 +1,6 @@
-import { FEEDBACK_PROMPT } from "@/services/Constants";
 import { NextResponse } from "next/server";
-import { getOpenRouterClient } from "@/lib/ai/openrouter";
-import { parseAiResponse } from "@/lib/ai/parse-ai-response";
 import { createClient } from "@supabase/supabase-js";
+import { generateFeedback } from "@/lib/feedback/generate-feedback";
 
 // Server-side Supabase client. Prefers the service-role key if present
 // (recommended for server writes); otherwise falls back to the anon key,
@@ -13,57 +11,64 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req) {
+    let recordId = null;
     try {
         const {
             conversation,
             codeSubmission = "",
             codeLanguage = "",
-            recordId = null,
+            recordId: rid = null,
         } = await req.json();
+        recordId = rid;
 
-        let FINAL_PROMPT = FEEDBACK_PROMPT.replace("{{conversation}}", JSON.stringify(conversation));
-        FINAL_PROMPT = FINAL_PROMPT.replace("{{code_submission}}", codeSubmission);
-        FINAL_PROMPT = FINAL_PROMPT.replace("{{code_language}}", codeLanguage);
-
-        const openai = getOpenRouterClient();
-
-        const completion = await openai.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b:free",
-            messages: [
-                { role: "user", content: FINAL_PROMPT }
-            ],
-        });
-
-        const message = completion.choices[0].message;
-
-        // If a recordId is supplied, parse + persist the feedback HERE on the
-        // server. This makes grading bulletproof: it completes even if the
-        // candidate's tab has already navigated away or been closed, because the
-        // request handler runs to completion server-side once it's received.
+        // 1. Transition to 'processing' state before invoking the AI pipeline.
+        // This acts as a lock to prevent concurrent webhook retries while generation is ongoing.
         if (recordId) {
             try {
-                const content = message?.content || "";
-                const feedbackData = parseAiResponse(content);
+                await supabaseAdmin
+                    .from("interview-feedback")
+                    .update({ processing_status: "processing" })
+                    .eq("id", recordId);
+            } catch (_) { /* Best effort lock */ }
+        }
 
+        // Reuse the shared feedback pipeline (same prompt / model / parser / schema).
+        const { feedback } = await generateFeedback({ conversation, codeSubmission, codeLanguage });
+
+        // If a recordId is supplied, persist the feedback HERE on the server so
+        // grading completes even if the candidate's tab has navigated away/closed.
+        if (recordId) {
+            try {
                 const { error: updateError } = await supabaseAdmin
                     .from("interview-feedback")
-                    .update({ feedback: feedbackData })
+                    .update({ feedback, processing_status: "completed" })
                     .eq("id", recordId);
 
                 if (updateError) throw updateError;
             } catch (persistErr) {
                 console.error("Feedback persist failed:", persistErr);
-                return NextResponse.json(
-                    { ...message, persisted: false, error: persistErr.message },
-                    { status: 200 }
-                );
+                // Mark as failed so the webhook can retry later.
+                await supabaseAdmin
+                    .from("interview-feedback")
+                    .update({ processing_status: "failed" })
+                    .eq("id", recordId);
+                return NextResponse.json({ persisted: false, error: persistErr.message }, { status: 200 });
             }
         }
 
-        return NextResponse.json({ ...message, persisted: !!recordId }, { status: 200 });
+        return NextResponse.json({ persisted: !!recordId, feedback }, { status: 200 });
     }
     catch (error) {
         console.error("API Error:", error);
-        return NextResponse.json({ error: "Failed to generate feedback" }, { status: 500 })
+        // Mark as failed so the webhook recovery path can pick it up.
+        if (recordId) {
+            try {
+                await supabaseAdmin
+                    .from("interview-feedback")
+                    .update({ processing_status: "failed" })
+                    .eq("id", recordId);
+            } catch (_) { /* best-effort */ }
+        }
+        return NextResponse.json({ error: "Failed to generate feedback" }, { status: 500 });
     }
 }

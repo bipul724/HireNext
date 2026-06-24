@@ -16,7 +16,11 @@ import {
 
 // --- Components we created earlier ---
 // Ensure these paths match where you saved the files in /components/ui/
-import { SplineScene } from "@/components/ui/splite";
+import dynamic from "next/dynamic";
+const SplineScene = dynamic(
+  () => import('@/components/ui/splite').then((mod) => mod.SplineScene),
+  { ssr: false, loading: () => <div className="h-full w-full flex items-center justify-center text-slate-400">Loading 3D experience...</div> }
+);
 import { Spotlight } from "@/components/ui/spotlight";
 import { Card } from "@/components/ui/card";
 import { useUser } from "@/app/provider";

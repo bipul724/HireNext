@@ -9,7 +9,21 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import moment from "moment";
-import { Editor } from "@monaco-editor/react";
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
+import ts from 'react-syntax-highlighter/dist/esm/languages/hljs/typescript';
+import py from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
+import java from 'react-syntax-highlighter/dist/esm/languages/hljs/java';
+import cpp from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
+import c from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
+import { vs } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+
+SyntaxHighlighter.registerLanguage('javascript', js);
+SyntaxHighlighter.registerLanguage('typescript', ts);
+SyntaxHighlighter.registerLanguage('python', py);
+SyntaxHighlighter.registerLanguage('java', java);
+SyntaxHighlighter.registerLanguage('cpp', cpp);
+SyntaxHighlighter.registerLanguage('c', c);
 
 export default function CandidateReviewPage() {
     const { interview_id, feedback_id } = useParams();
@@ -244,19 +258,21 @@ export default function CandidateReviewPage() {
                                     <div className="p-0 border-t border-slate-100">
                                         {candidate.code_submission ? (
                                             <div className="h-[400px]">
-                                                <Editor
-                                                    height="100%"
-                                                    language={candidate.code_language?.toLowerCase() || "javascript"}
-                                                    theme="vs-light"
-                                                    value={candidate.code_submission}
-                                                    options={{
-                                                        readOnly: true,
-                                                        minimap: { enabled: false },
-                                                        scrollBeyondLastLine: false,
-                                                        fontSize: 14,
-                                                        padding: { top: 16, bottom: 16 }
-                                                    }}
-                                                />
+                                                <div className="h-full overflow-y-auto bg-white">
+                                                    <SyntaxHighlighter
+                                                        language={candidate.code_language?.toLowerCase() || "plaintext"}
+                                                        style={vs}
+                                                        showLineNumbers={true}
+                                                        customStyle={{
+                                                            margin: 0,
+                                                            padding: '16px',
+                                                            fontSize: '14px',
+                                                            background: 'transparent'
+                                                        }}
+                                                    >
+                                                        {candidate.code_submission}
+                                                    </SyntaxHighlighter>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="p-8 text-center text-sm text-slate-500">
