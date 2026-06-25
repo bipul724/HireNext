@@ -196,4 +196,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-<p align="center">Built by <a href="https://github.com/<your-username>">ut</a></p>
+<p align="center">Built by <a href="https://github.com/bipul724">Bipul Chamoli</a></p>
