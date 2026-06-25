@@ -20,13 +20,13 @@ export async function initWebSocket(httpServer) {
     if (!auth.ok) {
       // Map custom codes to standard HTTP status strings
       const statusStr = 
-        auth.code === 404 ? "404 Not Found" :
-        auth.code === 403 ? "403 Forbidden" :
-        auth.code === 400 ? "400 Bad Request" :
+        auth.code === 4404 ? "404 Not Found" :
+        auth.code === 4403 ? "403 Forbidden" :
+        auth.code === 4400 ? "400 Bad Request" :
         "401 Unauthorized";
 
       // Reject the upgrade with an HTTP error before the socket opens.
-      socket.write(`HTTP/1.1 ${statusStr}\r\n\r\n`);
+      socket.write(`HTTP/1.1 ${statusStr}\r\nConnection: close\r\n\r\n`);
       socket.destroy();
       logger.warn(`Rejected ws upgrade: ${auth.code} ${auth.reason}`);
       return;

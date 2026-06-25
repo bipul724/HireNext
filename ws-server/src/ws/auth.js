@@ -11,8 +11,12 @@ export async function authenticateUpgrade(request) {
   try {
     // Origin check (defense in depth; browsers send Origin on ws upgrades).
     const origin = request.headers.origin;
-    if (origin && !env.CLIENT_ORIGINS.includes(origin)) {
-      return { ok: false, code: 4403, reason: "Forbidden origin" };
+    if (origin) {
+      // Normalize allowed origins by removing trailing slashes
+      const allowedOrigins = env.CLIENT_ORIGINS.map(o => o.replace(/\/$/, ""));
+      if (!allowedOrigins.includes(origin)) {
+        return { ok: false, code: 4403, reason: "Forbidden origin" };
+      }
     }
 
     const url = new URL(request.url, "http://localhost");
@@ -49,6 +53,7 @@ export async function authenticateUpgrade(request) {
     if (roleParam === "interviewer") {
       isAuthorized = (userEmail === interview.userEmail);
     } else if (roleParam === "candidate") {
+      // Strict 1-to-1 matching as enforced by the frontend UI
       isAuthorized = (userEmail === interview.candidateEmail);
     }
 

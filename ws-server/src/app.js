@@ -65,7 +65,7 @@ export function createApp() {
       return res.status(404).json({ error: "Interview not found" });
     }
 
-    // Only allow interviewer or this specific candidate
+    // Strict check: Only allow interviewer or this specific candidate
     if (userEmail !== interview.userEmail && userEmail !== interview.candidateEmail) {
       return res.status(403).json({ error: "Unauthorized" });
     }

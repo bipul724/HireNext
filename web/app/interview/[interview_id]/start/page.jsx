@@ -399,39 +399,47 @@ function StartInterview() {
     }, [interviewInfo, interview_id]);
 
     useEffect(() => {
-        vapi.on("message", (message) => {
+        const handleMessage = (message) => {
             if (message.type === "status-update") {
                 if (message.status === "ended") {
                     const reason = message.endedReason || "unknown";
                     lastEndedReasonRef.current = reason;
                 }
             } // Coding Challenge Mode — structured tool-call (no keyword matching).
-            const tool = extractToolCall(message);
-            if (tool?.name === "present_coding_challenge") {
-                const challenge = {
-                    title: tool.args.title || "Coding Challenge",
-                    description: tool.args.description || "",
-                    difficulty: tool.args.difficulty || "Medium",
-                    timeLimit: Number(tool.args.timeLimit) || 1800,
-                };
-                useCodingStore.getState().presentChallenge(challenge); // optimistic UI
-                try { wsClient.sendMessage("coding:present", { challenge }); } catch (_) {}
-                logInterviewEvent("coding-present", {
-                    interviewId: interview_id,
-                    title: challenge.title,
-                    difficulty: challenge.difficulty,
-                    timeLimit: challenge.timeLimit,
-                });
-            } else if (tool?.name === "end_coding_challenge") {
-                useCodingStore.getState().endCoding();
-                try { wsClient.sendMessage("coding:end", {}); } catch (_) {}
-                logInterviewEvent("coding-end", { interviewId: interview_id });
+
+            if (message?.toolCalls && message.toolCalls.length > 0) {
+                const toolCall = message.toolCalls[0];
+                const functionName = toolCall.function?.name;
+                const args = toolCall.function?.arguments;
+
+                if (functionName === "present_coding_challenge") {
+                    const challenge = {
+                        title: args.title || "Coding Challenge",
+                        description: args.description || "",
+                        difficulty: args.difficulty || "Medium",
+                        timeLimit: Number(args.timeLimit) || 1800,
+                    };
+                    useCodingStore.getState().presentChallenge(challenge); // optimistic UI
+                    try { wsClient.sendMessage("coding:present", { challenge }); } catch (_) {}
+                    logInterviewEvent("coding-present", {
+                        interviewId: interview_id,
+                        title: challenge.title,
+                        difficulty: challenge.difficulty,
+                        timeLimit: challenge.timeLimit,
+                    });
+                } else if (functionName === "end_coding_challenge") {
+                    useCodingStore.getState().endCoding();
+                    try { wsClient.sendMessage("coding:end", {}); } catch (_) {}
+                    logInterviewEvent("coding-end", { interviewId: interview_id });
+                }
             }
 
             if (message?.conversation) {
                 setConversation(message.conversation);
             }
-        });
+        };
+
+        vapi.on("message", handleMessage);
 
         const handleCallStart = () => {
             logInterviewEvent("call-start", {
@@ -522,7 +530,7 @@ function StartInterview() {
             toast.error("Voice connection error. Please try again.");
         };
 
-        vapi.on("message", handleMessage);
+        // handleMessage is now registered where it is defined above.
         vapi.on("call-start", handleCallStart);
         vapi.on("call-end", handleCallEnd);
         vapi.on("speech-start", handleSpeechStart);
