@@ -1,285 +1,199 @@
-<h1 align="center">
-  <br>
-  <img src="https://via.placeholder.com/150?text=HireNext+Logo" alt="HireNext" width="200">
-  <br>
-  HireNext
-  <br>
-</h1>
-
-<h4 align="center">AI-Powered Technical Interview Platform with Integrated Live Coding</h4>
-
 <p align="center">
-  <a href="#-overview">Overview</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#%EF%B8%8F-installation">Installation</a> •
-  <a href="#-environment-variables">Configuration</a> •
-  <a href="#-api-overview">API</a>
+  <h1 align="center">HireNext</h1>
+  <p align="center">AI-powered voice interview platform with real-time coding collaboration and automated candidate evaluation.</p>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" alt="Next.js">
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge" alt="Express">
-  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="Postgres">
-  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis">
-  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma">
-  <img src="https://img.shields.io/badge/Vapi_AI-000000?style=for-the-badge&logo=openai&logoColor=white" alt="Vapi AI">
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/version-0.1.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" alt="Next.js 16">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react" alt="React 19">
+  <img src="https://img.shields.io/badge/Supabase-backend-3FCF8E?logo=supabase" alt="Supabase">
+  <img src="https://img.shields.io/badge/Vapi-voice%20AI-purple" alt="Vapi AI">
 </p>
 
 ---
 
-## 🚀 Overview
+## Overview
 
-**HireNext** is an advanced AI-powered technical interview platform designed to automate and elevate the first-round technical screening process. By seamlessly integrating an intelligent voice-based AI interviewer with a real-time, collaborative code editor, HireNext provides a realistic and rigorous interview experience without requiring engineering hours.
+Hiring is broken. Recruiters spend hours scheduling calls, running repetitive screens, and manually scoring candidates — only to end up with inconsistent, subjective evaluations. HireNext fixes this by replacing the manual loop with an AI voice agent that conducts live interviews, scores candidates in real time, and surfaces recruiter-ready analytics.
 
-Candidates receive a secure, single-use link where they interact with an AI capable of asking dynamic questions, reviewing live code, and generating comprehensive feedback for hiring managers.
+A recruiter creates an interview, shares a link, and the candidate talks to an AI interviewer powered by [Vapi](https://vapi.ai). For technical roles, a collaborative code editor (backed by a WebSocket server and Monaco) lets candidates write and run code during the conversation. When the call ends, [OpenRouter](https://openrouter.ai) generates structured feedback — scores, skill breakdowns, and a hire/no-hire recommendation — and persists it to Supabase. The recruiter sees everything in an Intelligence Center dashboard without ever joining a call.
 
----
+## Features
 
-## ✨ Features
+- **AI Voice Interviews** — Vapi-powered conversational agent conducts behavioral, technical, and mixed interviews with configurable duration and question types.
+- **Live Collaborative Code Editor** — Monaco-based editor with WebSocket synchronization, multi-cursor presence indicators, and a coding challenge panel for technical interviews.
+- **Automated Feedback & Scoring** — OpenRouter LLM generates structured JSON feedback (technical skills, communication, problem solving, experience) with a hire recommendation immediately after each interview.
+- **Intelligence Center Dashboard** — Recruiter analytics with KPI cards (avg score, hire rate, top score), per-role performance breakdowns, skills radar, top candidate rankings, and an activity feed.
+- **Shareable Interview Links** — One-click interview creation with a unique link that candidates open in-browser — no accounts, no downloads, no scheduling back-and-forth.
 
-| Category | Features |
-| :--- | :--- |
-| **🎙️ AI Voice Interviews** | Natural, bidirectional voice conversations with an AI agent powered by **Vapi AI** and **Nemotron**. |
-| **💻 Real-Time Coding** | Integrated **Monaco Editor** with syntax highlighting and autocompletion. |
-| **⚡ Live Collaboration** | Sub-millisecond code synchronization using **WebSockets** and **Redis**. |
-| **📊 Automated Feedback** | Comprehensive candidate evaluation, scoring, and feedback generated by **Gemini**. |
-| **🔄 Dynamic Questioning** | AI adapts questions in real-time based on the candidate's performance and code. |
-| **🔐 Secure & Scalable** | JWT authentication, rate limiting, and highly available architecture deployed on **Vercel** and **Render**. |
+## Tech Stack
 
----
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19, Tailwind CSS 4, Radix UI, Lucide Icons, Recharts |
+| Voice AI | Vapi Web SDK |
+| LLM | OpenRouter (configurable model, default Nemotron) |
+| Database & Auth | Supabase (Postgres + Row-Level Security + Auth) |
+| Code Editor | Monaco Editor (`@monaco-editor/react`) |
+| Real-time Sync | WebSocket server (Express + `ws` + Redis pub/sub) |
+| Rate Limiting | Upstash Redis |
+| State Management | Zustand |
 
-## 🏗 Architecture
-
-HireNext utilizes a modern, decoupled client-server architecture optimized for low-latency real-time interactions.
-
-```mermaid
-graph TD
-    Client[Browser] -->|HTTP / WebSocket| NextJS[Next.js Frontend]
-    NextJS -->|REST API| Express[Express Backend]
-    NextJS <-->|Real-time Code Sync| WS[WebSocket Server]
-    
-    WS <-->|Code Persistence / PubSub| Redis[(Upstash Redis)]
-    
-    Express -->|ORM| Prisma[Prisma ORM]
-    Prisma -->|Query| Postgres[(Supabase PostgreSQL)]
-    
-    Express -->|AI Voice & Logic| Vapi[Vapi AI]
-    Express -->|LLM Routing| OpenRouter[OpenRouter / Nemotron]
-    Express -->|Evaluation Output| Gemini[Google Gemini]
-```
-
-### 🛠 Tech Stack
-
-**Frontend:** Next.js 15 (App Router), React, Tailwind CSS, shadcn/ui, Monaco Editor, Zustand, SWR  
-**Backend:** Express.js, Prisma ORM, PostgreSQL (Supabase), Redis (Upstash), WebSockets (ws)  
-**AI Services:** Vapi AI, OpenRouter, Google Gemini, NVIDIA Nemotron  
-**Deployment:** Vercel (Frontend), Render (Backend)  
-
----
-
-## 📂 Folder Structure
-
-```text
-hirenext/
-├── web/                    # Next.js 15 Frontend
-│   ├── app/                # App Router (Pages & Layouts)
-│   ├── components/         # Reusable UI & shadcn components
-│   ├── lib/                # Zustand stores, SWR hooks, utilities
-│   └── public/             # Static assets
-├── backend/                # Express.js API & WebSocket Server
-│   ├── src/
-│   │   ├── controllers/    # Route logic
-│   │   ├── routes/         # API endpoints
-│   │   ├── services/       # AI & Business logic
-│   │   └── sockets/        # WebSocket event handlers
-│   └── prisma/             # Database schema & migrations
-└── docs/                   # Additional documentation
-```
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-  <img src="https://via.placeholder.com/800x450?text=Landing+Page" alt="Landing Page">
-  <p><em>Landing Page</em></p>
-  
-  <img src="https://via.placeholder.com/800x450?text=Dashboard" alt="Dashboard">
-  <p><em>Admin Dashboard & Candidate Management</em></p>
-  
-  <img src="https://via.placeholder.com/800x450?text=Interview+Screen" alt="Interview Screen">
-  <p><em>Live Interview Environment & Monaco Coding Editor</em></p>
-  
-  <img src="https://via.placeholder.com/800x450?text=Feedback+Dashboard" alt="Feedback Dashboard">
-  <p><em>Automated AI Candidate Feedback & Analytics</em></p>
-</div>
-
----
-
-## 🛤 Interview Flow
-
-```mermaid
-graph LR
-    A[Create Interview] --> B[Candidate Receives Link]
-    B --> C[AI Voice Conversation]
-    C --> D[Live Coding Round]
-    D --> E[Interview Submission]
-    E --> F[AI Evaluation Pipeline]
-    F --> G[Feedback Dashboard]
-    
-    style A fill:#e2e8f0,stroke:#64748b,stroke-width:2px,color:#0f172a
-    style G fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#0f172a
-```
-
----
-
-## ⚙️ Installation
+## Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- [PostgreSQL](https://www.postgresql.org/) database
-- [Redis](https://redis.io/) instance
+- **Node.js** 18+
+- **npm** (or yarn/pnpm)
+- A [Supabase](https://supabase.com) project (database + auth)
+- A [Vapi](https://vapi.ai) account (voice agent)
+- An [OpenRouter](https://openrouter.ai) API key (LLM feedback)
+- An [Upstash](https://upstash.com) Redis instance (rate limiting)
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/yourusername/hirenext.git
-cd hirenext
-```
-
-### 2. Backend Setup
+### Installation
 
 ```bash
-cd backend
+# Clone the repository
+git clone https://github.com/<your-username>/HireNext.git
+cd HireNext
+
+# Install web app dependencies
+cd web
 npm install
 
-# Generate Prisma Client
-npx prisma generate
-
-# Run database migrations
-npx prisma migrate dev
-
-# Start development server
-npm run dev
-
-# For Production
-npm run build
-npm start
+# Install WebSocket server dependencies
+cd ../ws-server
+npm install
 ```
 
-### 3. Frontend Setup
+### Configure Environment
+
+Copy the example env file and fill in your credentials:
 
 ```bash
-cd ../web
-npm install
-
-# Start Next.js development server
-npm run dev
-
-# For Production
-npm run build
-npm start
+cd web
+cp .env.example .env.local
 ```
 
----
+<details>
+<summary><strong>Environment Variables</strong></summary>
 
-## 🔐 Environment Variables
-
-Create `.env` files in both `web/` and `backend/` directories.
-
-### Frontend (`web/.env.local`)
+#### Required
 
 | Variable | Description |
-| :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | Backend REST API base URL |
-| `NEXT_PUBLIC_WS_URL` | Backend WebSocket connection URL |
-| `NEXT_PUBLIC_VAPI_KEY` | Public key for Vapi AI initialization |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`| Google OAuth Client ID for authentication |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous (public) key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side writes) |
+| `OPENROUTER_API_KEY` | OpenRouter API key for LLM feedback |
+| `OPENROUTER_MODEL` | Model identifier (e.g. `nvidia/nemotron-3-super-120b-a12b:free`) |
+| `NEXT_PUBLIC_VAPI_PUBLIC_KEY` | Vapi public key for the voice agent |
+| `NEXT_PUBLIC_HOST_URL` | Base URL for interview links (e.g. `http://localhost:3000/interview`) |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token |
 
-### Backend (`backend/.env`)
+#### Real-time Code Editor
 
 | Variable | Description |
-| :--- | :--- |
-| `PORT` | Server port (default: 5000) |
-| `DATABASE_URL` | PostgreSQL connection string (Supabase) |
-| `REDIS_URL` | Redis connection string (Upstash) |
-| `JWT_SECRET` | Secret key for signing authentication tokens |
-| `VAPI_PRIVATE_KEY` | Private key for server-side Vapi AI calls |
-| `OPENROUTER_API_KEY` | API key for routing to Nemotron / LLMs |
-| `GEMINI_API_KEY` | Google Gemini API key for evaluation |
+|----------|-------------|
+| `NEXT_PUBLIC_WS_SERVER_URL` | HTTP URL of the WebSocket server (default `http://localhost:8080`) |
+| `NEXT_PUBLIC_WS_URL` | WebSocket URL the editor connects to (default `ws://localhost:8080`) |
 
-> **Warning:** Never commit `.env` files to version control. Ensure they are included in your `.gitignore` and that no secrets are exposed to the client bundle.
+#### Optional
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_VAPI_SERVER_URL` | Public URL for the Vapi webhook fallback path |
+| `VAPI_WEBHOOK_SECRET` | Shared secret for authenticating Vapi webhook requests |
+| `NEXT_PUBLIC_DEBUG_ANALYTICS` | Set to `true` to enable the diagnostics debug button |
+
+</details>
+
+### Run Locally
+
+```bash
+# Terminal 1 — Start the WebSocket server
+cd ws-server
+npm run dev          # Runs on port 8080
+
+# Terminal 2 — Start the Next.js app
+cd web
+npm run dev          # Runs on port 3000
+```
+
+Open [http://localhost:3000](http://localhost:3000) to access the app.
+
+### Build for Production
+
+```bash
+cd web
+npm run build
+npm run start
+```
+
+## Usage
+
+1. **Sign in** via Supabase Auth (email/password or OAuth).
+2. **Create an interview** from the dashboard — pick a job title, description, interview type (behavioral, technical, or mixed), and duration.
+3. **Share the link** with your candidate. They open it in a browser, no account required.
+4. **Candidate interviews** with the AI voice agent. For technical interviews, a live code editor appears alongside the conversation.
+5. **Review results** in the Intelligence Center — scores, skill breakdowns, hire recommendations, and per-role performance comparisons.
+
+## Project Structure
+
+```
+HireNext/
+├── web/                          # Next.js application
+│   ├── app/
+│   │   ├── (auth)/               # Auth pages (sign-in, sign-up)
+│   │   ├── (main)/               # Authenticated app shell
+│   │   │   ├── dashboard/        # Interview creation & overview
+│   │   │   ├── analytics/        # Intelligence Center dashboard
+│   │   │   ├── all-interview/    # Interview list
+│   │   │   ├── scheduled-interview/  # Candidate review & details
+│   │   │   └── settings/        # Account settings
+│   │   ├── interview/            # Public candidate interview page
+│   │   └── api/                  # API routes
+│   │       ├── ai-feedback/      # LLM feedback generation
+│   │       ├── ai-model/         # Question generation
+│   │       ├── analytics/        # KPI & candidate analytics
+│   │       └── vapi/             # Vapi webhook handler
+│   ├── components/
+│   │   └── editor/               # Monaco code editor components
+│   ├── lib/
+│   │   ├── ai/                   # OpenRouter client & response parser
+│   │   ├── auth/                 # Token verification
+│   │   ├── feedback/             # Feedback generation pipeline
+│   │   └── websocket/            # WS client & event registry
+│   └── store/                    # Zustand stores
+└── ws-server/                    # WebSocket collaboration server
+    └── src/
+        ├── ws/                   # WebSocket server & room management
+        └── config/               # Redis & environment config
+```
+
+## Contributing
+
+Contributions are welcome. To get started:
+
+1. **Fork** the repository.
+2. **Create a feature branch** from `main`:
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+3. **Make your changes** — keep commits focused and descriptive.
+4. **Test locally** to make sure the app and WebSocket server both run cleanly.
+5. **Open a pull request** against `main` with a clear description of what you changed and why.
+
+Please follow existing code conventions (functional components, Tailwind for styling, Radix primitives for UI). If your change touches the analytics pipeline or feedback generation, verify the data flows end-to-end from the database through the API to the dashboard.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 🔌 API Overview
-
-HireNext provides a robust RESTful API. Below are the primary namespaces:
-
-- `POST /api/auth/*` - Google OAuth, JWT generation, and session management.
-- `GET/POST /api/interviews/*` - CRUD operations for scheduling and managing interviews.
-- `GET /api/feedback/*` - Retrieval of AI-generated feedback and scoring metrics.
-- `GET /api/analytics/*` - Aggregated data for the admin dashboard.
-- `POST /api/ai/evaluate` - Triggers the Gemini evaluation pipeline post-interview.
-
----
-
-## 🚀 Performance & Security
-
-### Performance Optimizations
-- **WebSockets & Redis:** Real-time Monaco Editor synchronization is backed by Redis pub/sub and debounced to prevent network flooding.
-- **Caching Strategy:** Extensive use of `SWR` on the frontend and Redis caching on the backend for frequently accessed data.
-- **Code Splitting:** Next.js App Router automatically handles lazy loading and code splitting for optimal Time to Interactive (TTI).
-- **Database:** Prisma optimized queries with strategic PostgreSQL indexing.
-
-### Security Measures
-- **Authentication:** Stateless JWT authentication with secure HTTP-only cookies.
-- **Input Validation:** Strict payload validation using Zod before any database transaction.
-- **Rate Limiting:** IP-based rate limiting on sensitive endpoints (authentication, AI generation) to prevent abuse.
-- **Database Safety:** Prisma ORM inherently protects against SQL injection through parameterized queries. Secure environment variable injection.
-
----
-
-## 🔮 Future Improvements
-
-- [ ] **Video Integration:** WebRTC-based video feeds for candidates.
-- [ ] **Multiplayer Mode:** Allow human interviewers to shadow or drop into the AI interview seamlessly.
-- [ ] **Anti-Cheat & Proctoring:** Tab-switching detection and AI-based visual proctoring.
-- [ ] **Virtual Whiteboard:** Integrated canvas for system design and architecture questions.
-- [ ] **Multi-Language Support:** Expand code execution capabilities beyond JavaScript/TypeScript.
-- [ ] **Company Branding:** Custom white-labeling options for enterprise clients.
-- [ ] **Interview Recordings:** Secure playback of both code timeline and voice transcript.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions to HireNext! Please follow these steps:
-
-1. Fork the repository.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
-
-Please ensure your code follows the existing style conventions and passes all linting checks.
-
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## 📫 Contact
-
-**Project Maintainer**  
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yourusername) 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/yourprofile)  
-📧 email@placeholder.com
+<p align="center">Built by <a href="https://github.com/<your-username>">ut</a></p>
