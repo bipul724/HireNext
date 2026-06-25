@@ -24,7 +24,6 @@ function LatestInterviewsList() {
             .order("created_at", { ascending: false })
             .limit(6);
 
-        console.log(Interviews);
         setInterviewsList(Interviews);
 
     }

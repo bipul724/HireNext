@@ -6,7 +6,14 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 function InterviewLink({ interview_id, formData }) {
-    const url = process.env.NEXT_PUBLIC_HOST_URL + '/' + interview_id;
+    let hostUrl = process.env.NEXT_PUBLIC_HOST_URL;
+    if (!hostUrl) {
+        if (process.env.NODE_ENV === "production") {
+            throw new Error("NEXT_PUBLIC_HOST_URL is required in production");
+        }
+        hostUrl = "http://localhost:3000/interview";
+    }
+    const url = hostUrl + '/' + interview_id;
     const GetInterviewUrl = () => {
 
         return url;

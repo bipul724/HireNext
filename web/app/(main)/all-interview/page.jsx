@@ -22,7 +22,6 @@ function AllInterview(){
             .order("created_at", { ascending: false })
             
 
-        console.log(Interviews);
         setInterviewsList(Interviews);
         
     }

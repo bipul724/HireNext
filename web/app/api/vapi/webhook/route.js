@@ -3,13 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import { generateFeedback } from "@/lib/feedback/generate-feedback";
 import { timingSafeEqual } from "crypto";
 
-// Server-side admin client (service-role preferred for unauthenticated webhook
-// writes; falls back to anon, which already has insert/update rights here).
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 // Normalize the Vapi end-of-call-report into the conversation shape the feedback
 // prompt expects. Resilient to missing/partial transcripts.
 function extractConversation(msg) {
@@ -27,7 +20,7 @@ function extractConversation(msg) {
 // Best-effort code recovery for technical interviews. The ws-server persists
 // code snapshots to Supabase (CodeSnapshots) on key events, so the latest one is
 // readable here by interview_id without needing Redis access or a user token.
-async function fetchLatestCode(interviewId) {
+async function fetchLatestCode(supabaseAdmin, interviewId) {
     try {
         const { data } = await supabaseAdmin
             .from("CodeSnapshots")
@@ -41,6 +34,14 @@ async function fetchLatestCode(interviewId) {
 }
 
 export async function POST(req) {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing");
+    
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        serviceKey
+    );
+
     // Mandatory shared-secret verification. VAPI_WEBHOOK_SECRET must be set
     // whenever this route is deployed; the module-level guard below ensures it.
     const secret = process.env.VAPI_WEBHOOK_SECRET;
@@ -115,7 +116,7 @@ export async function POST(req) {
         
         if (!existingRow) {
             if (/technical/i.test(interviewType)) {
-                const c = await fetchLatestCode(interviewId);
+                const c = await fetchLatestCode(supabaseAdmin, interviewId);
                 codeSubmission = c.code;
                 codeLanguage = c.language;
             }

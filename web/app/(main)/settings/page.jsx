@@ -116,7 +116,7 @@ export default function Settings() {
       description: "This action will permanently delete all your data.",
       action: {
         label: "Confirm",
-        onClick: () => console.log("Deleted"),
+        onClick: () => {},
       },
     });
   };

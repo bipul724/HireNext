@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateFeedback } from "@/lib/feedback/generate-feedback";
-
-// Server-side Supabase client. Prefers the service-role key if present
-// (recommended for server writes); otherwise falls back to the anon key,
-// which already has insert/update rights on interview-feedback in this project.
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { aiRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req) {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing");
+    
+    // Server-side Supabase client.
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        serviceKey
+    );
+
+    const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+    const { success } = await aiRateLimit.limit(ip);
+    if (!success) {
+        return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
     let recordId = null;
     try {
         const {

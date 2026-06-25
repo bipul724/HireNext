@@ -11,7 +11,7 @@ export default function Login() {
         });
 
         if (error) {
-            console.log("Error", error.message)
+            console.error("Error", error.message)
         }
     }
 

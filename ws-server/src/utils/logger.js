@@ -9,7 +9,7 @@ function formatLog(level, args) {
 }
 
 export const logger = {
-  info: (...args) => console.log(formatLog('INFO', args)),
+  info: (...args) => console.info(formatLog('INFO', args)),
   warn: (...args) => console.warn(formatLog('WARN', args)),
   error: (...args) => console.error(formatLog('ERROR', args)),
 };

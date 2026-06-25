@@ -2,6 +2,7 @@ import { QUESTIONS_PROMPT } from "@/services/Constants";
 import { NextResponse } from "next/server";
 import { getOpenRouterClient } from "@/lib/ai/openrouter";
 import { parseAiResponse } from "@/lib/ai/parse-ai-response";
+import { aiRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req) {
     try {
@@ -13,9 +14,16 @@ export async function POST(req) {
             return NextResponse.json({ error: "Technical interviews cannot be combined with other interview types." }, { status: 400 });
         }
 
-        console.log("--- AI Model API called ---");
-        console.log("Received fields:", { jobPosition, jobDescription: jobDescription?.substring(0, 50), interviewDuration, interviewType });
-        console.log("API Key present:", !!process.env.OPENROUTER_API_KEY);
+        const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+        const { success } = await aiRateLimit.limit(ip);
+        if (!success) {
+            return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+        }
+
+        const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
+        if (!OPENROUTER_MODEL) {
+            throw new Error("OPENROUTER_MODEL environment variable is required.");
+        }
 
         // Format the interview type(s) in a recruiter-friendly way:
         //   ["Behavioral"]                       -> "Behavioral"
@@ -53,7 +61,7 @@ export async function POST(req) {
         const openai = getOpenRouterClient();
 
         const completion = await openai.chat.completions.create({
-            model: "nvidia/nemotron-3-super-120b-a12b:free",
+            model: OPENROUTER_MODEL,
             messages: [
                 { role: "user", content: FINAL_PROMPT }
             ],

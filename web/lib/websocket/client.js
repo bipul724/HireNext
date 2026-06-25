@@ -40,7 +40,7 @@ export class WsClient {
   async connect(getUrlFn, onMessage) {
     // Prevent overlapping async connections
     if (this.isConnecting) {
-      console.log('[WebSocket] Connection attempt already in progress, ignoring.');
+      console.info('[WebSocket] Connection attempt already in progress, ignoring.');
       return;
     }
     
@@ -72,7 +72,7 @@ export class WsClient {
       this.ws = new WebSocket(url);
 
       this.ws.onopen = () => {
-        console.log('[WebSocket] Connected');
+        console.info('[WebSocket] Connected');
         this.reconnectAttempts = 0; // Reset counter on success
         this.isConnecting = false;  // Release lock
         useConnectionStore.getState().setStatus('connected');
@@ -103,10 +103,10 @@ export class WsClient {
       this.ws.onclose = () => {
         this.isConnecting = false; // Release lock in case it dropped while connecting
         if (!this.isIntentionallyDisconnected) {
-          console.log('[WebSocket] Disconnected unexpectedly');
+          console.info('[WebSocket] Disconnected unexpectedly');
           this.attemptReconnect();
         } else {
-          console.log('[WebSocket] Disconnected cleanly');
+          console.info('[WebSocket] Disconnected cleanly');
           useConnectionStore.getState().setStatus('disconnected');
         }
       };
@@ -165,7 +165,7 @@ export class WsClient {
     const timeout = delaySeconds * 1000;
     this.reconnectAttempts++;
     
-    console.log(`[WebSocket] Reconnecting in ${timeout}ms... (Attempt ${this.reconnectAttempts})`);
+    console.info(`[WebSocket] Reconnecting in ${timeout}ms... (Attempt ${this.reconnectAttempts})`);
     
     this.reconnectTimeoutId = setTimeout(() => {
       this.reconnectTimeoutId = null; // Clear ID so we know it fired
@@ -188,7 +188,7 @@ export class WsClient {
 
   // --- Browser Recovery Listeners ---
   handleOnline() {
-    console.log('[WebSocket] Browser came online. Verifying connection...');
+    console.info('[WebSocket] Browser came online. Verifying connection...');
     if (!this.isIntentionallyDisconnected && (!this.ws || this.ws.readyState !== WebSocket.OPEN) && !this.isConnecting) {
       this.reconnectAttempts = 0; // Immediate attempt
       
@@ -203,7 +203,7 @@ export class WsClient {
 
   handleVisibilityChange() {
     if (document.visibilityState === 'visible') {
-      console.log('[WebSocket] Browser tab visible. Verifying connection...');
+      console.info('[WebSocket] Browser tab visible. Verifying connection...');
       if (!this.isIntentionallyDisconnected && (!this.ws || this.ws.readyState !== WebSocket.OPEN) && !this.isConnecting) {
         this.reconnectAttempts = 0; // Immediate attempt
         

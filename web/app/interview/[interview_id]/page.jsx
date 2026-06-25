@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/services/supabaseClient";
 import { Clock, Info, Loader2Icon, Video, User, Mail, CheckCircle } from "lucide-react";
 import Image from "next/image";
-import Logo from "@/components/Logo";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -13,12 +12,12 @@ import { InterviewDataContext } from "@/context/InterviewDataContext";
 
 function Interview() {
     const { interview_id } = useParams();
-    console.log(interview_id);
 
     const [interviewData, setInterviewData] = useState();
     const [userName, setUserName] = useState("");
     const [userEmail, setUserEmail] = useState("");
     const [loading, setLoading] = useState(false);
+    const [webcamEnabled, setWebcamEnabled] = useState(false);
     const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
     const router = useRouter();
 
@@ -34,7 +33,6 @@ function Interview() {
             .eq("interview_id", interview_id);
 
         if (error) {
-            console.log(error);
             toast("Incorrect Interview Link");
             return;
         }
@@ -83,11 +81,12 @@ function Interview() {
                 toast("Incorrect Interview Link");
                 return;
             }
+            setWebcamEnabled(true);
         }
         catch (error) {
-            console.log(error);
+            setWebcamEnabled(false);
+            toast("Camera / Mic access denied or not available. Please allow permissions in your browser.");
             setLoading(false);
-            toast("Incorrect Interview Link");
         }
     }
 

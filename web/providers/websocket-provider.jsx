@@ -27,7 +27,13 @@ export function WebSocketProvider({ interviewId, children }) {
 
         const token = data.session.access_token;
         const userEmail = data.session.user.email;
-        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+        let wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+        if (!wsUrl) {
+          if (process.env.NODE_ENV === 'production') {
+            throw new Error("NEXT_PUBLIC_WS_URL is required in production");
+          }
+          wsUrl = 'ws://localhost:8080';
+        }
         
         // Dynamically determine role based on interview ownership
         const { data: interview, error: fetchError } = await supabase

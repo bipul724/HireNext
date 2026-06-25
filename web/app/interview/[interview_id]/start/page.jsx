@@ -82,13 +82,12 @@ const logInterviewEvent = (event, data = {}) => {
         online: typeof navigator !== "undefined" ? navigator.onLine : null,
         ...data,
     };
-    console.log("[INTERVIEW]", JSON.stringify(entry));
     try {
         supabase
             .from("interview-events")
             .insert(entry)
             .then(({ error }) => {
-                if (error) console.debug("[INTERVIEW] telemetry persist skipped:", error.message);
+                // silently drop
             });
     } catch (_) {
         /* never let telemetry throw */
@@ -158,7 +157,13 @@ function StartInterview() {
                     await wsClient.flushEditor();
 
                     // 2. Fetch latest code from Redis via API
-                    const wsServerUrl = process.env.NEXT_PUBLIC_WS_SERVER_URL || "http://localhost:8080";
+                    let wsServerUrl = process.env.NEXT_PUBLIC_WS_SERVER_URL;
+                    if (!wsServerUrl) {
+                        if (process.env.NODE_ENV === "production") {
+                            throw new Error("NEXT_PUBLIC_WS_SERVER_URL is missing in production");
+                        }
+                        wsServerUrl = "http://localhost:8080";
+                    }
                     const { data: sessionData } = await supabase.auth.getSession();
                     const token = sessionData?.session?.access_token;
                     
@@ -342,20 +347,16 @@ function StartInterview() {
             // ✅ Honor the configured length; ✅ don't end while the candidate codes/thinks.
             maxDurationSeconds: durationSeconds,
             silenceTimeoutSeconds,
-            // Correlation for the backend Vapi webhook — lets feedback be generated
-            // server-side from the end-of-call-report even if this tab is gone.
-            // Harmless when no webhook is configured.
+            // Correlation for the backend Vapi webhook
             metadata: {
                 interview_id,
                 userEmail: interviewInfo?.userEmail,
                 userName: interviewInfo?.userName,
                 type: interviewInfo?.interviewData?.type || "",
             },
-            // Only attach the server URL when configured, so local dev (no public
-            // URL) behaves exactly as before.
             ...(process.env.NEXT_PUBLIC_VAPI_SERVER_URL
                 ? { server: { url: process.env.NEXT_PUBLIC_VAPI_SERVER_URL }, serverMessages: ["end-of-call-report"] }
-                : {}),
+                : (process.env.NODE_ENV === "production" ? (() => { throw new Error("NEXT_PUBLIC_VAPI_SERVER_URL is required in production"); })() : {})),
             model: {
                 provider: "google",
                 model: "gemini-2.0-flash",
@@ -398,20 +399,13 @@ function StartInterview() {
     }, [interviewInfo, interview_id]);
 
     useEffect(() => {
-        const handleMessage = (message) => {
-            // The web SDK delivers endedReason on status-update messages, NOT on the
-            // call-end event — capture it here for DIAGNOSTICS/LOGGING ONLY.
-            if (message?.type === "status-update") {
-                if (message?.endedReason) lastEndedReasonRef.current = message.endedReason;
-                logInterviewEvent("status-update", {
-                    interviewId: interview_id,
-                    candidateEmail: interviewInfo?.userEmail,
-                    status: message?.status,
-                    endedReason: message?.endedReason,
-                });
-            }
-
-            // Coding Challenge Mode — structured tool-call (no keyword matching).
+        vapi.on("message", (message) => {
+            if (message.type === "status-update") {
+                if (message.status === "ended") {
+                    const reason = message.endedReason || "unknown";
+                    lastEndedReasonRef.current = reason;
+                }
+            } // Coding Challenge Mode — structured tool-call (no keyword matching).
             const tool = extractToolCall(message);
             if (tool?.name === "present_coding_challenge") {
                 const challenge = {
@@ -437,7 +431,7 @@ function StartInterview() {
             if (message?.conversation) {
                 setConversation(message.conversation);
             }
-        };
+        });
 
         const handleCallStart = () => {
             logInterviewEvent("call-start", {
@@ -467,12 +461,6 @@ function StartInterview() {
 
             // Diagnostics before finalizing — enables future debugging of premature
             // ends (silence vs. duration vs. error vs. network). No recovery logic.
-            console.log("[INTERVIEW][call-end]", {
-                interviewId: interview_id,
-                endedReason: reason,
-                online: typeof navigator !== "undefined" ? navigator.onLine : null,
-                elapsedTime: timeRef.current,
-            });
             logInterviewEvent("call-end", {
                 interviewId: interview_id,
                 candidateEmail: interviewInfo?.userEmail,

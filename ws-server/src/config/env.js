@@ -13,7 +13,16 @@ function required(name) {
 export const env = {
   PORT: process.env.PORT || 8080,
   // Comma-separated allowed frontend origins for CORS + WS origin check.
-  CLIENT_ORIGINS: (process.env.CLIENT_ORIGINS || "http://localhost:3000")
+  CLIENT_ORIGINS: (() => {
+    const origins = process.env.CLIENT_ORIGINS;
+    if (!origins) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("CLIENT_ORIGINS is required in production");
+      }
+      return "http://localhost:3000";
+    }
+    return origins;
+  })()
     .split(",")
     .map((o) => o.trim()),
   REDIS_URL: required("REDIS_URL"),

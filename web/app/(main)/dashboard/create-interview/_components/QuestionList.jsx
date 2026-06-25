@@ -28,14 +28,11 @@ function QuestionList({ formData,onCreateLink }) {
                 ...formData,
             });
             
-            console.log("AI Response:", result.data);
-            
             // The API returns the clean object, so we just set it
             setQuestionList(result.data.interviewQuestions || []);
             setLoading(false);
         }
         catch (error) {
-            console.error(error);
             toast('Server Error try again !')
             setLoading(false);
         }
@@ -81,15 +78,12 @@ function QuestionList({ formData,onCreateLink }) {
             .eq('userEmail', user?.email)
             .select();
 
-            console.log(userUpdate);
             
 
         if (data) {
-            console.log("Saved:", data);
             toast("Interview saved successfully!");
         }
         if (error) {
-            console.error("Supabase Error:", error);
             toast("Failed to save: " + error.message);
         }
         setSaveLoading(false);

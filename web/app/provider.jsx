@@ -22,7 +22,7 @@ function Provider({ children }) {
                 .select('*')
                 .eq('email', user?.email)
 
-            console.log(Users);
+
 
 
             //If not then create new user
@@ -32,9 +32,10 @@ function Provider({ children }) {
                     email: user?.email,
 
                     picture: user?.user_metadata?.picture
-                })
-                console.log(data);
-                setUser(data);
+                }).select();
+                if (data) {
+                    setUser(data[0]);
+                }
                 return;
             }
             setUser(Users[0]);
