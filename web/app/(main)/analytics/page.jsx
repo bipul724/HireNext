@@ -14,6 +14,7 @@ const SkillsBreakdownChart = dynamic(
   { ssr: false, loading: () => <div className="h-[300px] flex items-center justify-center text-slate-400">Loading chart...</div> }
 );
 import RecentCandidates from './_components/RecentCandidates'
+import AnalyticsDebugButton from './_components/AnalyticsDebugButton'
 import { Users, Calendar, TrendingUp, Award, Target, UserCheck } from 'lucide-react'
 
 function Analytics() {
@@ -51,7 +52,11 @@ function Analytics() {
                 headers: { 'Authorization': token ? `Bearer ${token}` : '' }
             })
             
-            if (!response.ok) throw new Error("Failed to fetch KPIs")
+            if (!response.ok) {
+                const errorBody = await response.text()
+                console.error("KPI API error:", response.status, errorBody)
+                throw new Error("Failed to fetch KPIs")
+            }
             const data = await response.json()
             
             // 1. Stats
@@ -65,8 +70,13 @@ function Analytics() {
                 topScore: data.topScore || 0
             })
 
-            // 2. Role Performance
-            setPerformanceData(data.rolePerformance || [])
+            // 2. Role Performance — map API shape to component's expected props
+            setPerformanceData((data.rolePerformance || []).map(r => ({
+                role: r.role,
+                avgScore: r.avgScore,
+                candidateCount: r.count,
+                recRate: r.hireRate,
+            })))
 
             // 3. Skills Data
             const sp = data.skillsPerformance || { technicalSkills: 0, communication: 0, problemSolving: 0, experience: 0 }
@@ -121,9 +131,64 @@ function Analytics() {
             }
             setInsightsData(generatedInsights)
 
-            // 5. Missing Data (Not provided by RPC)
-            setTopCandidatesData([])
-            setActivityData([])
+            // 5. Top Candidates & Activity Feed — derived from candidates endpoint
+            try {
+                const candRes = await fetch('/api/analytics/candidates?limit=20', {
+                    headers: { 'Authorization': token ? `Bearer ${token}` : '' }
+                })
+                if (candRes.ok) {
+                    const candData = await candRes.json()
+                    const items = candData.items || []
+
+                    // Helper: compute avg score for a feedback row
+                    const calcScore = (row) => {
+                        const nested = row?.feedback?.feedback ?? row?.feedback
+                        const r = nested?.rating
+                        if (!r) return 0
+                        return ((r.technicalSkills ?? r.techicalSkills ?? 0) +
+                            (r.communication ?? 0) +
+                            (r.problemSolving ?? 0) +
+                            (r.experience ?? r.experince ?? 0)) / 4
+                    }
+
+                    // Helper: get recommendation string
+                    const getRec = (row) => {
+                        const nested = row?.feedback?.feedback ?? row?.feedback
+                        return nested?.recommendation || nested?.Recommendation || ''
+                    }
+
+                    // Top candidates: scored, sorted descending
+                    const scored = items
+                        .map(c => ({ ...c, score: +calcScore(c).toFixed(1) }))
+                        .filter(c => c.score > 0)
+                        .sort((a, b) => b.score - a.score)
+
+                    setTopCandidatesData(scored.slice(0, 5).map(c => ({
+                        id: c.id,
+                        interviewId: c.interview_id || c.mockIdRef,
+                        userName: c.userName || c.userEmail?.split('@')[0] || 'Candidate',
+                        userEmail: c.userEmail,
+                        jobPosition: c.interview?.jobPosition || 'General',
+                        score: c.score,
+                        recommendation: getRec(c),
+                    })))
+
+                    // Activity feed: recent events from feedback rows
+                    const activities = items.slice(0, 8).map(c => {
+                        const rec = getRec(c).toLowerCase()
+                        const isRec = (rec.includes('yes') || rec.includes('hire') || rec.includes('recommend') || rec.includes('maybe')) &&
+                            !rec.includes('not') && !rec.includes('no hire')
+                        return {
+                            type: isRec ? 'candidate_recommended' : 'feedback_generated',
+                            title: `${c.userName || c.userEmail?.split('@')[0] || 'Candidate'} — ${c.interview?.jobPosition || 'Interview'} feedback`,
+                            date: c.created_at,
+                        }
+                    })
+                    setActivityData(activities)
+                }
+            } catch (candErr) {
+                console.error("Error fetching candidate data for widgets:", candErr)
+            }
 
         } catch (err) {
             console.error("Error fetching analytics:", err)
@@ -182,6 +247,9 @@ function Analytics() {
             <div className="grid grid-cols-1">
                 <RecentCandidates totalCount={stats.totalCandidates} userEmail={user?.primaryEmailAddress?.emailAddress || user?.email} />
             </div>
+
+            {/* Diagnostics (removable) — only when NEXT_PUBLIC_DEBUG_ANALYTICS=true */}
+            {process.env.NEXT_PUBLIC_DEBUG_ANALYTICS === "true" && <AnalyticsDebugButton />}
         </div>
     )
 }
