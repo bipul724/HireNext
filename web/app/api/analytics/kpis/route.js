@@ -26,15 +26,12 @@ export async function GET(req) {
         // ── Flatten feedback rows ──
         const allFeedback = [];
         (interviews || []).forEach((iv) =>
-            (iv["interview-feedback"] || []).forEach((f) =>
-                allFeedback.push({ ...f, interview: { jobPosition: iv.jobPosition, type: iv.type } })
-            )
+            (iv["interview-feedback"] || []).forEach((f) => allFeedback.push(f))
         );
 
         // ── Aggregate KPIs ──
         let totalRating = 0, ratingCount = 0, recommendedCount = 0, maxScore = 0;
         const skillTotals = { technicalSkills: 0, communication: 0, problemSolving: 0, experience: 0 };
-        const roleMap = {};
 
         allFeedback.forEach((fb) => {
             const nested = fb.feedback?.feedback ?? fb.feedback;
@@ -63,12 +60,6 @@ export async function GET(req) {
                 !recRaw.includes("not") &&
                 !recRaw.includes("no hire");
             if (isRec) recommendedCount++;
-
-            const role = fb.interview?.jobPosition || "General Role";
-            if (!roleMap[role]) roleMap[role] = { role, count: 0, totalScore: 0, recs: 0 };
-            roleMap[role].count++;
-            roleMap[role].totalScore += score;
-            if (isRec) roleMap[role].recs++;
         });
 
         const totalCandidates = allFeedback.length;
@@ -83,14 +74,6 @@ export async function GET(req) {
                 experience: +(skillTotals.experience / ratingCount).toFixed(2),
             }
             : { technicalSkills: 0, communication: 0, problemSolving: 0, experience: 0 };
-
-        // ── Role performance array ──
-        const rolePerformance = Object.values(roleMap).map((r) => ({
-            role: r.role,
-            count: r.count,
-            avgScore: r.count > 0 ? +((r.totalScore / r.count).toFixed(2)) : 0,
-            hireRate: r.count > 0 ? Math.round((r.recs / r.count) * 100) : 0,
-        }));
 
         // ── Most recent interview ──
         const sorted = (interviews || []).slice().sort(
@@ -109,7 +92,6 @@ export async function GET(req) {
             hireRate: totalCandidates > 0 ? Math.round((recommendedCount / totalCandidates) * 100) : 0,
             recommendedCount,
             skillsPerformance,
-            rolePerformance,
             recentInterview,
         });
     } catch (err) {

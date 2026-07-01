@@ -12,9 +12,12 @@ export async function GET(req) {
     const cursorDate = searchParams.get("cursor_date");
     const cursorId = searchParams.get("cursor_id");
 
+    // Trimmed to the columns the Analytics UI (TopCandidates, RecentCandidates,
+    // ActivityFeed) actually reads. Deliberately excludes large/unused columns
+    // like transcript, code_submission, code_language, processing_status.
     let query = supabase
         .from("interview-feedback")
-        .select("*, interview:Interviews!inner(jobPosition, type, userEmail)")
+        .select("id, interview_id, userName, userEmail, created_at, feedback, interview:Interviews!inner(jobPosition, type, userEmail)")
         .eq("interview.userEmail", email)
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })

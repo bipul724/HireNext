@@ -6,7 +6,6 @@ import { supabase } from '@/services/supabaseClient'
 import StatCard from './_components/StatCard'
 import TopCandidates from './_components/TopCandidates'
 import RecruiterInsights from './_components/RecruiterInsights'
-import InterviewPerformance from './_components/InterviewPerformance'
 import ActivityFeed from './_components/ActivityFeed'
 import dynamic from "next/dynamic";
 const SkillsBreakdownChart = dynamic(
@@ -32,9 +31,9 @@ function Analytics() {
     
     const [topCandidatesData, setTopCandidatesData] = useState([])
     const [insightsData, setInsightsData] = useState([])
-    const [performanceData, setPerformanceData] = useState([])
     const [activityData, setActivityData] = useState([])
     const [skillsData, setSkillsData] = useState([])
+    const [recentCandidatesSeed, setRecentCandidatesSeed] = useState(null)
 
     useEffect(() => {
         if (user) {
@@ -47,18 +46,22 @@ function Analytics() {
         try {
             const { data: { session } } = await supabase.auth.getSession()
             const token = session?.access_token
-            
-            const response = await fetch('/api/analytics/kpis', {
-                headers: { 'Authorization': token ? `Bearer ${token}` : '' }
-            })
-            
+            const authHeaders = { 'Authorization': token ? `Bearer ${token}` : '' }
+
+            // Fetch KPIs and candidates in parallel — they have no data dependency
+            // on each other, so there's no reason to wait for one before starting the other.
+            const [response, candRes] = await Promise.all([
+                fetch('/api/analytics/kpis', { headers: authHeaders }),
+                fetch('/api/analytics/candidates?limit=20', { headers: authHeaders }),
+            ])
+
             if (!response.ok) {
                 const errorBody = await response.text()
                 console.error("KPI API error:", response.status, errorBody)
                 throw new Error("Failed to fetch KPIs")
             }
             const data = await response.json()
-            
+
             // 1. Stats
             const recommendedCount = Math.round((data.totalCandidates || 0) * ((data.hireRate || 0) / 100))
             setStats({
@@ -69,14 +72,6 @@ function Analytics() {
                 avgRating: data.avgRating || 0,
                 topScore: data.topScore || 0
             })
-
-            // 2. Role Performance — map API shape to component's expected props
-            setPerformanceData((data.rolePerformance || []).map(r => ({
-                role: r.role,
-                avgScore: r.avgScore,
-                candidateCount: r.count,
-                recRate: r.hireRate,
-            })))
 
             // 3. Skills Data
             const sp = data.skillsPerformance || { technicalSkills: 0, communication: 0, problemSolving: 0, experience: 0 }
@@ -131,14 +126,22 @@ function Analytics() {
             }
             setInsightsData(generatedInsights)
 
-            // 5. Top Candidates & Activity Feed — derived from candidates endpoint
+            // 5. Top Candidates & Activity Feed — derived from the candidates response
+            // fetched in parallel above (no second request needed here).
             try {
-                const candRes = await fetch('/api/analytics/candidates?limit=20', {
-                    headers: { 'Authorization': token ? `Bearer ${token}` : '' }
-                })
                 if (candRes.ok) {
                     const candData = await candRes.json()
                     const items = candData.items || []
+
+                    // Seed RecentCandidates' first page from data we already have,
+                    // so it doesn't have to re-fetch page 1 itself on mount.
+                    setRecentCandidatesSeed({
+                        items: items.slice(0, 5),
+                        hasMore: items.length > 5,
+                        nextCursor: items.length > 5
+                            ? { cursor_date: items[4].created_at, cursor_id: items[4].id }
+                            : null,
+                    })
 
                     // Helper: compute avg score for a feedback row
                     const calcScore = (row) => {
@@ -232,11 +235,6 @@ function Analytics() {
                 </div>
             </div>
 
-            {/* Row 3: Interview Performance */}
-            <div className="grid grid-cols-1 mb-6">
-                <InterviewPerformance performanceData={performanceData} />
-            </div>
-
             {/* Row 4: Charts (Secondary) + Activity Feed */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <ActivityFeed activities={activityData} />
@@ -245,7 +243,7 @@ function Analytics() {
 
             {/* Row 5: Recent Candidates Table */}
             <div className="grid grid-cols-1">
-                <RecentCandidates totalCount={stats.totalCandidates} userEmail={user?.primaryEmailAddress?.emailAddress || user?.email} />
+                <RecentCandidates totalCount={stats.totalCandidates} userEmail={user?.primaryEmailAddress?.emailAddress || user?.email} initialData={recentCandidatesSeed} />
             </div>
 
             {/* Diagnostics (removable) — only when NEXT_PUBLIC_DEBUG_ANALYTICS=true */}

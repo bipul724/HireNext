@@ -4,14 +4,18 @@ import { Users, ChevronRight, ChevronLeft, Eye, Loader2 } from 'lucide-react'
 
 import { supabase } from '@/services/supabaseClient'
 
-function RecentCandidates({ totalCount, userEmail }) {
-    const [candidates, setCandidates] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [hasMore, setHasMore] = useState(false)
+function RecentCandidates({ totalCount, userEmail, initialData }) {
+    // If the parent already fetched the first page of candidates (it needs the
+    // same data for TopCandidates/ActivityFeed), seed our state from that
+    // instead of firing our own duplicate request + auth round trip.
+    const [candidates, setCandidates] = useState(initialData?.items || [])
+    const [loading, setLoading] = useState(!initialData)
+    const [hasMore, setHasMore] = useState(initialData?.hasMore || false)
     const [cursorStack, setCursorStack] = useState([])
     const [currentCursor, setCurrentCursor] = useState(null)
-    const [nextCursor, setNextCursor] = useState(null)
+    const [nextCursor, setNextCursor] = useState(initialData?.nextCursor || null)
     const [error, setError] = useState(null)
+    const [seeded, setSeeded] = useState(!!initialData)
 
     const fetchPage = useCallback(async (cursor, direction) => {
         if (!userEmail) return;
@@ -59,11 +63,16 @@ function RecentCandidates({ totalCount, userEmail }) {
     }, [userEmail, currentCursor]);
 
     useEffect(() => {
-        if (userEmail) {
-            fetchPage(null, 'initial');
+        if (!userEmail) return;
+        if (seeded) {
+            // Already have page 1 from the parent's fetch — nothing to load.
+            return;
         }
+        // No seed available (e.g. parent's candidates fetch failed) — fall back
+        // to fetching this component's own first page.
+        fetchPage(null, 'initial');
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userEmail]);
+    }, [userEmail, seeded]);
 
     const handleNext = () => {
         if (hasMore && nextCursor) {
